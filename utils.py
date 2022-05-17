@@ -2,11 +2,15 @@
 # This source code is licensed under the license found in the LICENSE file in
 # the root directory of this source tree.
 
+import numpy as np
 import os
 import subprocess
 import time
 from datetime import datetime
 import pandas as pd
+from lora_layers import LoRA_Linear
+from transformers.adapters.layer import AdapterLayerBaseMixin
+from transformers.models.bert.modeling_bert import BertSelfAttention
 
 
 def freeze_params_by_layers(model, num_enc_layers, num_frozen_layers=0):
@@ -147,3 +151,44 @@ def clean_raw_data(data_df):
     data_df = data_df[necessary_cols]
     return data_df
 
+
+def get_gates(model, epoch=None, split=None):
+    """Store the gates from the model, possible to also store the epoch and splits trained on
+
+    Args:
+        model (_type_): _description_
+    """
+    # check if gates do exist:
+    # are adapters, lora or prefix training used? if not, don't store them
+    
+    # Make table as follows:
+    # model_name | gate_lora | gate_prefix | gate_adapters | encoder_layer | epoch | split 
+
+    # str | float or None | float or None | float or None | int or None | str or None
+    
+    gate_output_d, lora_gate_query, lora_gate_value, prefix_gate = np.nan, np.nan, np.nan, np.nan
+    for idx, layer in enumerate(model.bert.encoder.layer):
+        # check the variables for gating in each bert encoder layer
+        if layer.output.adapters: # if not empty adapters ModuleDict
+            try:
+                #gate_output_d = np.array(layer.output.gate_output_d).reshape((-1,))
+                gate_output_d = [gate for batch in layer.output.gate_output_d for gate in list(batch)]
+            except:
+                print('len(layer.output.gate_output_d) did not work')
+                    
+        if isinstance(layer.attention.self.query, LoRA_Linear):
+            lora_gate_query = [gate for batch in layer.attention.self.query.lora_gate_output_l for gate in list(batch)]
+        
+        if isinstance(layer.attention.self.value, LoRA_Linear):
+            #print('layer.attention.self.value.lora_gate_output_l:', len(layer.attention.self.value.lora_gate_output_l))
+            #lora_gate_value = np.array(layer.attention.self.value.lora_gate_output_l).reshape(-1)
+            lora_gate_value = [gate for batch in layer.attention.self.value.lora_gate_output_l for gate in list(batch)]
+        
+        if isinstance(layer.attention.self, BertSelfAttention):
+            #print('layer.attention.self.prefix_gate_output_l:', len(layer.attention.self.prefix_gate_output_l))
+            #prefix_gate = np.array(layer.attention.self.prefix_gate_output_l).reshape(-1)
+            prefix_gate = [gate for batch in layer.attention.self.prefix_gate_output_l for gate in list(batch)]
+
+        gate_dict = pd.DataFrame({'gate_prefix': prefix_gate, 'gate_lora_value': lora_gate_value, 'gate_lora_query': lora_gate_query, 'gate_adapters': gate_output_d, 'encoder_layer': idx, 'epoch':epoch, 'split': split})
+
+        return gate_dict

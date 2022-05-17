@@ -87,6 +87,10 @@ BERT_PRETRAINED_MODEL_ARCHIVE_LIST = [
     # See all BERT models at https://huggingface.co/models?filter=bert
 ]
 
+# Imports added by Myra Z.
+import pandas as pd
+import numpy as np
+from collections import defaultdict
 
 def load_tf_weights_in_bert(model, config, tf_checkpoint_path):
     """Load tf checkpoints in a pytorch model."""
@@ -942,6 +946,8 @@ class BertModel(BertModelAdaptersMixin, BertPreTrainedModel):
 
         self.init_weights()
 
+        self.gates = pd.DataFrame()  # added by Myra Z.
+
     def get_input_embeddings(self):
         return self.embeddings.word_embeddings
 
@@ -1091,6 +1097,54 @@ class BertModel(BertModelAdaptersMixin, BertPreTrainedModel):
             attentions=encoder_outputs.attentions,
             cross_attentions=encoder_outputs.cross_attentions,
         )
+    
+    def reset_gate_variables(self):
+        # Added by Myra Z.
+        for idx, layer in enumerate(self.encoder.layer):
+            # check the variables for gating in each bert encoder layer
+            if layer.output.adapters: # if not empty adapters ModuleDict
+                try:
+                    #gate_output_d = np.array(layer.output.gate_output_d).reshape((-1,))
+                    layer.output.gate_output_d = defaultdict(list)
+                except:
+                    print('len(layer.output.gate_output_d) did not work')
+                        
+            if isinstance(layer.attention.self.query, LoRA_Linear):
+                layer.attention.self.query.lora_gate_output_l = []
+            
+            if isinstance(layer.attention.self.value, LoRA_Linear):
+                layer.attention.self.value.lora_gate_output_l = []
+            
+            if isinstance(layer.attention.self, BertSelfAttention):
+                layer.attention.self.prefix_gate_output_l = []
+
+    def store_gate_variables(self, epoch=None, split=None):
+        # Added by Myra Z. 
+        gate_output_d, lora_gate_query, lora_gate_value, prefix_gate = None, None, None, None
+        for idx, layer in enumerate(self.encoder.layer):
+            # check the variables for gating in each bert encoder layer
+            if layer.output.adapters: # if not empty adapters ModuleDict
+                try:
+                    layer_adapter_name = [key for key in layer.output.gate_output_d.keys() if str(idx) in key][0]  # works for one adapter per layer
+                    gate_output_d = [gate for batch in layer.output.gate_output_d[layer_adapter_name] for gate in list(batch)]
+                except:
+                    print('len(layer.output.gate_output_d) did not work')
+                        
+            if isinstance(layer.attention.self.query, LoRA_Linear):
+                lora_gate_query = [gate for batch in layer.attention.self.query.lora_gate_output_l for gate in list(batch)]
+
+            if isinstance(layer.attention.self.value, LoRA_Linear):
+                lora_gate_value = [gate for batch in layer.attention.self.value.lora_gate_output_l for gate in list(batch)]
+
+            if isinstance(layer.attention.self, BertSelfAttention):
+                prefix_gate = [gate for batch in layer.attention.self.prefix_gate_output_l for gate in list(batch)]
+
+            gate_dict = pd.DataFrame({'gate_prefix': prefix_gate, 'gate_lora_value': lora_gate_value, 'gate_lora_query': lora_gate_query, 'gate_adapters': gate_output_d, 'encoder_layer': idx, 'epoch': epoch, 'split': split})
+            
+            self.gates = pd.concat([self.gates, gate_dict], ignore_index=True)
+            # clear the varaibles after they are stored
+        self.reset_gate_variables()
+
 
 
 @add_start_docstrings(

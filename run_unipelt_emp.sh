@@ -2,7 +2,7 @@
 # https://arxiv.org/abs/2110.07577
 
 # setup wandb
-wandb_entity="myra"
+wandb_entity="masterthesis-zmarsly"
 # or to not use wandb use:
 #wandb_entity="None"
 

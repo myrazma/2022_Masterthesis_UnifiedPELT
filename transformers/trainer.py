@@ -1236,6 +1236,8 @@ class Trainer:
                 if self.control.should_epoch_stop or self.control.should_training_stop:
                     break
             
+            self.model.bert.store_gate_variables(epoch=self.state.epoch, split='train')  #addd by Myra Z.
+            
             self.control = self.callback_handler.on_epoch_end(self.args, self.state, self.control)
             early_stop = self._maybe_log_save_evaluate(tr_loss, model, trial, epoch)
             if early_stop:
@@ -1954,6 +1956,7 @@ class Trainer:
 
         self._memory_tracker.stop_and_update_metrics(output.metrics)
         output.metrics['early_stop'] = early_stop
+        self.model.bert.store_gate_variables(epoch=self.state.epoch, split=metric_key_prefix)  #addd by Myra Z.
         return output.metrics
 
     def predict(
@@ -2004,6 +2007,8 @@ class Trainer:
         output.metrics.update(speed_metrics(metric_key_prefix, start_time, len(test_dataset)))
 
         self._memory_tracker.stop_and_update_metrics(output.metrics)
+
+        self.model.bert.store_gate_variables(epoch=self.state.epoch, split=metric_key_prefix)  #addd by Myra Z.
 
         return output
 

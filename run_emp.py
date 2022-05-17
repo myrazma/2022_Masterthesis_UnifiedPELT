@@ -66,6 +66,7 @@ from lora_layers import LoRA_Linear
 from transformers.adapters.layer import AdapterLayerBaseMixin
 from transformers.models.bert.modeling_bert import BertSelfAttention
 
+import pandas as pd
 import importlib.util
 # Setup wandb
 package_name = 'wandb'
@@ -742,6 +743,7 @@ def main():
         log_wandb(metrics, use_wandb)  # Added by Myra Z.: log wandb is use_wandb == True
 
     log_plot_gradients(model, tensorboard_writer, use_wandb)
+    plot_gates(model, tensorboard_writer, use_wandb)
 
     # Evaluation
     if training_args.do_eval:
@@ -816,6 +818,10 @@ def main():
                             item = label_list[item]
                             writer.write(f"{index}\t{item}\n")
     
+    # Added by Myra Z.
+    if len(model.bert.gates) > 0:
+        model.bert.gates.to_csv(training_args.output_dir + '/gates.csv')
+    
 
 
 # Added by Myra Z.
@@ -886,58 +892,19 @@ def log_plot_gradients(model, tensorboard_writer, use_wandb=False):
     plt.close()
 
 
-    print(model.bert.encoder.layer)
-    for idx, layer in enumerate(model.bert.encoder.layer):
-        # each bert encoder layer
-        #print(idx)
-        if layer.output.adapters: # if not empty ModuleDict
-            for adapter in layer.output.adapters.keys():
-                #print('ADAPTER:', adapter)
-                if not layer.output.adapters[adapter].gate is None:
-                    #print('adapter.gate:', len(layer.output.adapters[adapter].gate))
-                    try:
-                        #print('adapter.gate_output_d:', len(layer.output.adapters[adapter].gate))
-                        gate_output_d = np.array(layer.output.adapters[adapter].gate_output_d).reshape((-1,))
-                        plt.plot(lora_gate_query, label='adapter_gate_output_d')
-                    except:
-                        print('len(layer.output.adapters[adapter].gate_output_d) did not work')
-                
-            #print('adapter.gate:', len(layer.output.adapters[adapter].gate))
-            try:
-                #print('layer.output.gate_output_d:', len(layer.output.gate_output_d))
-                gate_output_d = np.array(layer.output.gate_output_d).reshape((-1,))
-                gate_output_d = [gate for batch in layer.output.gate_output_d for gate in list(batch)]
-                plt.plot(lora_gate_query, label='adapter_gate_output_d')
-            except:
-                print('len(layer.output.gate_output_d) did not work')
-                    
-        if isinstance(layer.attention.self.query, LoRA_Linear):
-            #print('layer.attention.self.query.lora_gate_output_l:', len(layer.attention.self.query.lora_gate_output_l))
-            #print('layer.attention.self.query.lora_gate_output_l[0]:', len(layer.attention.self.query.lora_gate_output_l[0]))
-            #lora_gate_query = np.array(layer.attention.self.query.lora_gate_output_l).reshape(-1)
-            lora_gate_query = [gate for batch in layer.attention.self.query.lora_gate_output_l for gate in list(batch)]
-            plt.plot(lora_gate_query, label='lora_gate_query')
-        if isinstance(layer.attention.self.value, LoRA_Linear):
-            #print('layer.attention.self.value.lora_gate_output_l:', len(layer.attention.self.value.lora_gate_output_l))
-            #lora_gate_value = np.array(layer.attention.self.value.lora_gate_output_l).reshape(-1)
-            lora_gate_value = [gate for batch in layer.attention.self.value.lora_gate_output_l for gate in list(batch)]
-            plt.plot(lora_gate_value, label='lora_gate_value')
-        if isinstance(layer.attention.self, BertSelfAttention):
-            #print('layer.attention.self.prefix_gate_output_l:', len(layer.attention.self.prefix_gate_output_l))
-            #prefix_gate = np.array(layer.attention.self.prefix_gate_output_l).reshape(-1)
-            prefix_gate = [gate for batch in layer.attention.self.prefix_gate_output_l for gate in list(batch)]
-            plt.plot(prefix_gate, label='prefix_gate')
-
-        plt.ylim(0,1)
-        plt.legend()
-        plt.ylabel('gating value')
-        plt.xlabel('shown input')
-        title = 'layer ' + str(idx) + ': PELT methods gating values per shown training example'
-        if tensorboard_writer is not None:
-            tensorboard_writer.add_figure(title, plt.gcf())
-        if use_wandb:
-            wandb.log({title: wandb.Image(plt)})
-        plt.close()
+def plot_gates(model, tensorboard_writer, use_wandb=False):
+    gates = model.bert.gates
+    print(gates)
+    plt.ylim(0,1)
+    plt.legend()
+    plt.ylabel('gating value')
+    plt.xlabel('shown input')
+    title = ': PELT methods gating values per shown training example'
+    if tensorboard_writer is not None:
+        tensorboard_writer.add_figure(title, plt.gcf())
+    if use_wandb:
+        wandb.log({title: wandb.Image(plt)})
+    plt.close()
     
 
 def _mp_fn(index):

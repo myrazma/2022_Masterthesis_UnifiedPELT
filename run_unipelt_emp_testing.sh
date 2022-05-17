@@ -2,7 +2,7 @@
 # https://arxiv.org/abs/2110.07577
 
 # setup wandb
-wandb_entity="myra"
+wandb_entity="masterthesis-zmarsly"
 # or to not use wandb use:
 #wandb_entity="None"
 
@@ -117,9 +117,9 @@ python run_emp.py \
     --do_eval True \
     --do_train True \
     --add_central_gate False \
-    --num_train_epochs 10 \
-    --per_device_eval_batch_size 16 \
-    --per_device_train_batch_size 16 \
+    --num_train_epochs 2 \
+    --per_device_eval_batch_size 4 \
+    --per_device_train_batch_size 4 \
     --max_train_samples 10 \
     --max_val_samples 10 \
     --early_stopping_patience 5 \
