@@ -1,15 +1,14 @@
 FROM python:3.8-slim-buster
 
-# add user to run
-RUN useradd ml-stud-mzmarsly -u 1008
-USER ml-stud-mzmarsly
-
 WORKDIR /mzmarsly
 
 COPY requirements.txt .
 
 RUN pip install -r requirements.txt
 
+# add user to run
+RUN useradd ml-stud-mzmarsly -u 1008
+USER ml-stud-mzmarsly
 
 # follwing is only needed for deployment
 # copy python files 
