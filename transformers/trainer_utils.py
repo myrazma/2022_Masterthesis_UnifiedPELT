@@ -245,6 +245,25 @@ def speed_metrics(split, start_time, num_samples=None):
         result[f"{split}_samples_per_second"] = round(samples_per_second, 3)
     return result
 
+def gating_metrics(gating_df):
+    """Create metrics dictionary for the gating values
+    Added by Myra Z.
+
+    Args:
+        gating_df (_type_): The gating dictionary (columns should include all gating values, encoder layer and split)
+    """
+    splits = set(gating_df['split'].to_list())
+    if len(splits) > 1:
+        print(f'\nMyWarning: Encountered data from multiple splits while saving gating to metrics: {splits}')
+    grouped_mean = gating_df.groupby(['encoder_layer']).agg({'gate_prefix':'mean', 'gate_lora_value':'mean', 'gate_lora_query':'mean', 'gate_adapters':'mean'})  
+    gating_metrics = {}
+    for col in grouped_mean.columns:
+        for layer in grouped_mean.index.to_list():
+            key = f'gating/layer_{layer+1}/{col[5:]}'
+            value = grouped_mean[col][layer]
+            if value is not None:
+                gating_metrics[key] = float(value)
+    return gating_metrics
 
 class SchedulerType(ExplicitEnum):
     LINEAR = "linear"

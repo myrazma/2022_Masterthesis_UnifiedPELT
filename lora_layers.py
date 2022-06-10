@@ -169,8 +169,8 @@ class LoRA_Linear(nn.Linear, LoRALayer):
                         self.scaling = torch.sigmoid(self.lora_gate(x))
                         self.scaling = torch.mean(self.scaling, dim=1).unsqueeze(-1)
                     self.lora_gate_output_l.append(self.scaling.detach().squeeze().cpu().numpy())
-                    self.lora_gate_output_l_epoch.append(self.scaling.detach().squeeze().cpu().numpy())
-                result += (self.lora_dropout(x) @ self.lora_A.T @ self.lora_B.T) * self.scaling  # TODO added by Myra: Lora gate / scaling added here
+                    self.lora_gate_output_l_epoch.append(self.scaling.detach().squeeze().cpu().numpy())  # Added by Myra Z.
+                result += (self.lora_dropout(x) @ self.lora_A.T @ self.lora_B.T) * self.scaling  # Lora gate / scaling added here
             return result
         else:
             return F.linear(x, T(self.weight), bias=self.bias)

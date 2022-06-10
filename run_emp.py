@@ -584,16 +584,15 @@ def main():
 
     total_params = sum(p.numel() for p in model.parameters())
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    logger.info(f"trainable_params: {trainable_params}, total_params: {total_params}, percentage:  {trainable_params/total_params}")
+    logger.info(f"trainable_params: {trainable_params}, total_params: {total_params}, percentage:  {(trainable_params/total_params)*100}")
 
     log_wandb({'trainable_params':trainable_params, 'trainable_params_percentage':trainable_params/total_params*100}, use_wandb)
-    if True:
+    if False:
             names = [n for n, p in model.named_parameters()]
             paramsis = [param for param in model.parameters()]
             for n, p in zip(names, paramsis):
                 print(f"{n}: {p.requires_grad}")
             print(model)
-
 
 
     # TODO: I dont think we need this here
@@ -737,14 +736,21 @@ def main():
 
         trainer.save_model()  # Saves the tokenizer too for easy upload
         #print('\n -------------------------- trainer state', trainer.state.log_history)
+        print(metrics)
+        # print(model)
         trainer.log_metrics("train", metrics)
         trainer.save_metrics("train", metrics)
         trainer.save_state()
         log_wandb(metrics, use_wandb)  # Added by Myra Z.: log wandb is use_wandb == True
 
-    log_plot_gradients(model, tensorboard_writer, use_wandb)
-    plot_gates(model, tensorboard_writer, use_wandb)
+    print
 
+    log_plot_gradients(model, tensorboard_writer, use_wandb)
+    log_plot_gates(model, tensorboard_writer, use_wandb)
+    log_plot_gates_per_layer(model, tensorboard_writer, use_wandb)
+
+
+    # set epoch of trainer state control to None so we know that training is over
     # Evaluation
     if training_args.do_eval:
         logger.info("*** Evaluate ***")
@@ -892,20 +898,100 @@ def log_plot_gradients(model, tensorboard_writer, use_wandb=False):
     plt.close()
 
 
-def plot_gates(model, tensorboard_writer, use_wandb=False):
+def log_plot_gates(model, tensorboard_writer, use_wandb=False):
     gates = model.bert.gates
-    print(gates)
-    plt.ylim(0,1)
-    plt.legend()
-    plt.ylabel('gating value')
-    plt.xlabel('shown input')
-    title = ': PELT methods gating values per shown training example'
-    if tensorboard_writer is not None:
-        tensorboard_writer.add_figure(title, plt.gcf())
-    if use_wandb:
-        wandb.log({title: wandb.Image(plt)})
-    plt.close()
-    
+    encoder_layers = sorted(set(gates['encoder_layer']))
+    # get eval and train of last epoch while in train
+    last_train = gates[(gates['split'] == 'train_evaluation') & (gates['epoch'] == max(gates['epoch'])) & (gates['is_in_train'] == True)].reset_index()
+    after_train_eval = gates[(gates['split'] == 'eval') & (gates['is_in_train'] == False)].reset_index()
+    after_train_test = gates[(gates['split'] == 'test') & (gates['is_in_train'] == False)].reset_index()
+
+    show_plot_crit = lambda key: len(gate_per_set[key]) > 0 # criterion to not show the plot for the data set, here: if dataset not used / df is empty
+    gate_per_set = {'train':last_train, 'eval':after_train_eval, 'test':after_train_test}
+    count_data_available = sum([1 for key in gate_per_set.keys() if show_plot_crit(key)])
+
+    for layer in encoder_layers:
+        fig, axs = plt.subplots(count_data_available, sharey=True, sharex=False, constrained_layout=True)
+        idx = 0
+        print('Non empty datasets:', count_data_available)
+        for key in gate_per_set.keys():
+            if show_plot_crit(key):
+                #print(gate_per_set[key]) 
+                dataset = gate_per_set[key]
+                dataset = dataset[dataset['encoder_layer'] == layer].reset_index()
+                if count_data_available == 1:
+                    axs.plot(dataset[['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
+                    axs.set_ylabel('gating value')
+                    axs.set_title(f'{key} data set')
+                else:
+                    axs[idx].plot(dataset[['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
+                    axs[idx].set_ylabel('gating value')
+                    axs[idx].set_title(f'{key} data set')
+                idx += 1
+
+        title = f'Gating Values - Encoder Layer {int(layer) + 1}'
+        fig.suptitle(title)
+        plt.legend()
+        plt.xlabel('data sample')
+        plt.ylim(0,1)
+        if tensorboard_writer is not None:
+            tensorboard_writer.add_figure(title, plt.gcf())
+        if use_wandb:
+            wandb.log({title: wandb.Image(plt)})
+        plt.close()
+
+
+def log_plot_gates_per_layer(model, tensorboard_writer, use_wandb):
+    gates = model.bert.gates
+    encoder_layers = sorted(set(gates['encoder_layer']))
+    # get eval and train of last epoch while in train
+    last_train = gates[(gates['split'] == 'train') & (gates['epoch'] == max(gates['epoch'])) & (gates['is_in_train'] == True)].reset_index()
+    after_train_eval = gates[(gates['split'] == 'eval') & (gates['is_in_train'] == False)].reset_index()
+    after_train_test = gates[(gates['split'] == 'test') & (gates['is_in_train'] == False)].reset_index()
+
+    show_plot_crit = lambda key: len(gate_per_set[key]) > 0 # criterion to not show the plot for the data set, here: if dataset not used / df is empty
+    gate_per_set = {'train':last_train, 'eval':after_train_eval, 'test':after_train_test}
+    count_data_available = sum([1 for key in gate_per_set.keys() if show_plot_crit(key)])
+
+
+    #fig, axs = plt.subplots(count_data_available, sharey=False, sharex=False, constrained_layout=True, figsize=(10,20))
+    idx = 0
+    #layer = int(layer)
+    # TODO filter per layer
+    for key in gate_per_set.keys():
+        if show_plot_crit(key):
+            fig, axs = plt.subplots()
+            dataset = gate_per_set[key]
+            #dataset = dataset[dataset['encoder_layer'] == layer].reset_index()
+            grouped_mean = dataset.groupby(['encoder_layer']).agg({'gate_prefix':'mean', 'gate_lora_value':'mean', 'gate_lora_query':'mean', 'gate_adapters':'mean'})
+            #print(grouped_mean)
+            #for i in zip(grouped_mean[['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters']].to_numpy()):
+            #    print(i)
+            #return
+            bar_width = 2
+            width = bar_width*4 + bar_width*1.5
+            x = grouped_mean.index.to_numpy() * width
+            axs.barh(y=x - ((bar_width/2)+bar_width), width=grouped_mean['gate_prefix'], height=bar_width, label='Prefix Tuning', color='#029e72')#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
+            axs.barh(y=x - (bar_width/2), width=grouped_mean['gate_lora_value'], height=bar_width, label='LoRA value', color='#e69f00')#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
+            axs.barh(y=x + (bar_width/2), width=grouped_mean['gate_lora_query'], height=bar_width, label='LoRA query', color='#f0e441')#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
+            axs.barh(y=x + ((bar_width/2)+bar_width), width=grouped_mean['gate_adapters'], height=bar_width, label='Adapters', color='#57b4e8')#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
+            axs.set_ylabel('Encoder Layer')
+            axs.set_yticklabels(grouped_mean.index.to_numpy())
+            axs.set_yticks(x)
+            axs.set_title(f'{key} data set')
+            axs.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+            idx += 1
+
+            title = f'Mean Gating Values for all Encoder Layers'
+            fig.suptitle(title)
+            plt.xlabel('Mean gating value')
+            fig.tight_layout()
+            if tensorboard_writer is not None:
+                tensorboard_writer.add_figure(title, plt.gcf())
+            if use_wandb:
+                wandb.log({f'{key}/gating_layers': wandb.Image(plt)})
+            plt.close()
+
 
 def _mp_fn(index):
     # For xla_spawn (TPUs)

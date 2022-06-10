@@ -1118,8 +1118,16 @@ class BertModel(BertModelAdaptersMixin, BertPreTrainedModel):
             if isinstance(layer.attention.self, BertSelfAttention):
                 layer.attention.self.prefix_gate_output_l = []
 
-    def store_gate_variables(self, epoch=None, split=None):
+    def store_gate_variables(self, epoch=None, split=None, is_in_train=True):
+        """Store the gate variables and flush the gate variables (not the ones used for calculation)
+
+        Args:
+            epoch (_type_, optional): _description_. Defaults to None.
+            split (_type_, optional): _description_. Defaults to None.
+            in_train_loop (bool, optional): _description_. Defaults to True.
+        """
         # Added by Myra Z. 
+        current_gate = pd.DataFrame()
         gate_output_d, lora_gate_query, lora_gate_value, prefix_gate = None, None, None, None
         for idx, layer in enumerate(self.encoder.layer):
             # check the variables for gating in each bert encoder layer
@@ -1139,11 +1147,13 @@ class BertModel(BertModelAdaptersMixin, BertPreTrainedModel):
             if isinstance(layer.attention.self, BertSelfAttention):
                 prefix_gate = [gate for batch in layer.attention.self.prefix_gate_output_l for gate in list(batch)]
 
-            gate_dict = pd.DataFrame({'gate_prefix': prefix_gate, 'gate_lora_value': lora_gate_value, 'gate_lora_query': lora_gate_query, 'gate_adapters': gate_output_d, 'encoder_layer': idx, 'epoch': epoch, 'split': split})
+            gate_dict = pd.DataFrame({'gate_prefix': prefix_gate, 'gate_lora_value': lora_gate_value, 'gate_lora_query': lora_gate_query, 'gate_adapters': gate_output_d, 'encoder_layer': idx, 'epoch': epoch, 'split': split, 'is_in_train':is_in_train})
             
-            self.gates = pd.concat([self.gates, gate_dict], ignore_index=True)
+            current_gate = pd.concat([current_gate, gate_dict], ignore_index=True)
             # clear the varaibles after they are stored
+        self.gates = pd.concat([self.gates, current_gate], ignore_index=True)
         self.reset_gate_variables()
+        return current_gate
 
 
 

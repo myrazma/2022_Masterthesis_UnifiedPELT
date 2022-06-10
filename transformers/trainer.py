@@ -101,6 +101,7 @@ from .trainer_utils import (
     get_last_checkpoint,
     set_seed,
     speed_metrics,
+    gating_metrics, # custom method for creating gate dictionary by Myra Z.
 )
 from .training_args import ParallelMode, TrainingArguments
 from .utils import logging
@@ -1236,7 +1237,6 @@ class Trainer:
                 if self.control.should_epoch_stop or self.control.should_training_stop:
                     break
             
-            self.model.bert.store_gate_variables(epoch=self.state.epoch, split='train')  #addd by Myra Z.
             
             self.control = self.callback_handler.on_epoch_end(self.args, self.state, self.control)
             early_stop = self._maybe_log_save_evaluate(tr_loss, model, trial, epoch)
@@ -1254,7 +1254,6 @@ class Trainer:
                     )
             if self.control.should_training_stop:
                 break
-
 
         if self.args.past_index and hasattr(self, "_past"):
             # Clean the state at the end of training
@@ -1315,6 +1314,7 @@ class Trainer:
                     self.state.best_model_checkpoint, load_optimizer_states=False, load_lr_scheduler_states=False
                 )
 
+        # TODO, eventuell muss gating metric hier eingefügt werden
         metrics = speed_metrics("train", start_time, self.state.max_steps)
         if self._total_flos is not None:
             self.store_flos()
@@ -1354,6 +1354,8 @@ class Trainer:
 
             logs["loss"] = round(tr_loss_scalar / (self.state.global_step - self._globalstep_last_logged), 4)
             logs["learning_rate"] = self._get_learning_rate()
+            gating_df = self.model.bert.store_gate_variables(epoch=self.state.epoch, split='train', is_in_train=self.is_in_train)  #addd by Myra Z.
+            logs.update(gating_metrics(gating_df))
 
             self._total_loss_scalar += tr_loss_scalar
             self._globalstep_last_logged = self.state.global_step
@@ -1369,7 +1371,7 @@ class Trainer:
 
             # Added by Myra Z.
             # evaluate on train set during training to also see the performance on train set
-            train_metrics = self.evaluate(eval_dataset=self.train_dataset, metric_key_prefix='train')
+            train_metrics = self.evaluate(eval_dataset=self.train_dataset, metric_key_prefix='train_evaluation')
             self._report_to_hp_search(trial, epoch, train_metrics)
             self.log(train_metrics)
 
@@ -1956,8 +1958,11 @@ class Trainer:
 
         self._memory_tracker.stop_and_update_metrics(output.metrics)
         output.metrics['early_stop'] = early_stop
-        self.model.bert.store_gate_variables(epoch=self.state.epoch, split=metric_key_prefix)  #addd by Myra Z.
+        gating_df = self.model.bert.store_gate_variables(epoch=self.state.epoch, split=metric_key_prefix, is_in_train=self.is_in_train)  #addd by Myra Z.
+        output.metrics.update(gating_metrics(gating_df))
         return output.metrics
+
+    
 
     def predict(
             self, test_dataset: Dataset, ignore_keys: Optional[List[str]] = None, metric_key_prefix: str = "test"
@@ -2008,7 +2013,8 @@ class Trainer:
 
         self._memory_tracker.stop_and_update_metrics(output.metrics)
 
-        self.model.bert.store_gate_variables(epoch=self.state.epoch, split=metric_key_prefix)  #addd by Myra Z.
+        gating_df = self.model.bert.store_gate_variables(epoch=self.state.epoch, split=metric_key_prefix, is_in_train=self.is_in_train)  #addd by Myra Z.
+        output.metrics.update(gating_metrics(gating_df))
 
         return output
 
