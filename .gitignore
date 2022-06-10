@@ -131,9 +131,9 @@ dmypy.json
 # ------------------
 # Own stuff added
 # ignore csv in data
-data/**/*.csv
-data/**/*.tsv
-data/**/*.txt
+#data/**/*.csv
+#data/**/*.tsv
+#data/**/*.txt
 
 # ignore others
 **/.DS_Store
