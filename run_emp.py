@@ -921,12 +921,13 @@ def log_plot_gates(model, tensorboard_writer, use_wandb=False):
                 #print(gate_per_set[key]) 
                 dataset = gate_per_set[key]
                 dataset = dataset[dataset['encoder_layer'] == layer].reset_index()
+                color=['#029e72', '#e69f00', '#f0e441', '#57b4e8']
                 if count_data_available == 1:
-                    axs.plot(dataset[['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'], color=['#029e72', '#e69f00', '#f0e441', '#57b4e8'])
+                    axs.plot(dataset[['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
                     axs.set_ylabel('gating value')
                     axs.set_title(f'{key} data set')
                 else:
-                    axs[idx].plot(dataset[['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'], color=['#029e72', '#e69f00', '#f0e441', '#57b4e8'])
+                    axs[idx].plot(dataset[['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
                     axs[idx].set_ylabel('gating value')
                     axs[idx].set_title(f'{key} data set')
                 idx += 1
