@@ -14,6 +14,7 @@ import inspect
 import math
 import os
 import pickle
+from posixpath import split
 import re
 import shutil
 import sys
@@ -1355,7 +1356,7 @@ class Trainer:
             logs["loss"] = round(tr_loss_scalar / (self.state.global_step - self._globalstep_last_logged), 4)
             logs["learning_rate"] = self._get_learning_rate()
             gating_df = self.model.bert.store_gate_variables(epoch=self.state.epoch, split='train', is_in_train=self.is_in_train)  #addd by Myra Z.
-            logs.update(gating_metrics(gating_df))
+            logs.update(gating_metrics(split_prefix='train', gating_df=gating_df))
 
             self._total_loss_scalar += tr_loss_scalar
             self._globalstep_last_logged = self.state.global_step
@@ -1899,16 +1900,16 @@ class Trainer:
         # Determine the new best metric / best model checkpoint
         early_stop = False
         if output.metrics is not None:
-            if f'{metric_key_prefix}_f1' in output.metrics:
-                metric_to_check = f'{metric_key_prefix}_f1'
-            elif f'{metric_key_prefix}_matthews_correlation' in output.metrics:
-                metric_to_check = f'{metric_key_prefix}_matthews_correlation'
-            elif f'{metric_key_prefix}_spearmanr' in output.metrics:
-                metric_to_check = f'{metric_key_prefix}_spearmanr'
-            elif f'{metric_key_prefix}_accuracy' in output.metrics:
-                metric_to_check = f'{metric_key_prefix}_accuracy'
-            elif f'{metric_key_prefix}_pearsonr' in output.metrics:  # edited / added by Myra Z.
-                metric_to_check = f'{metric_key_prefix}_pearsonr'
+            if f'{metric_key_prefix}/f1' in output.metrics:
+                metric_to_check = f'{metric_key_prefix}/f1'
+            elif f'{metric_key_prefix}/matthews_correlation' in output.metrics:
+                metric_to_check = f'{metric_key_prefix}/matthews_correlation'
+            elif f'{metric_key_prefix}/spearmanr' in output.metrics:
+                metric_to_check = f'{metric_key_prefix}/spearmanr'
+            elif f'{metric_key_prefix}/accuracy' in output.metrics:
+                metric_to_check = f'{metric_key_prefix}/accuracy'
+            elif f'{metric_key_prefix}/pearsonr' in output.metrics:  # edited / added by Myra Z.
+                metric_to_check = f'{metric_key_prefix}/pearsonr'
             else:
                 logger.info(output.metrics)
                 raise NotImplementedError
@@ -1933,13 +1934,13 @@ class Trainer:
             cur_res = {metric_to_check: metric_value, 'epoch': self.state.epoch,
                        'global_step': self.state.global_step}
             # additionally save acc/pearson
-            if metric_to_check != f'{metric_key_prefix}_accuracy' and f'{metric_key_prefix}_accuracy' in output.metrics:
-                cur_res[f'{metric_key_prefix}_accuracy'] = output.metrics[f'{metric_key_prefix}_accuracy']
-            if metric_to_check != f'{metric_key_prefix}_pearson' and f'{metric_key_prefix}_pearson' in output.metrics:
-                cur_res[f'{metric_key_prefix}_pearson'] = output.metrics[f'{metric_key_prefix}_pearson']
+            if metric_to_check != f'{metric_key_prefix}/accuracy' and f'{metric_key_prefix}/accuracy' in output.metrics:
+                cur_res[f'{metric_key_prefix}/accuracy'] = output.metrics[f'{metric_key_prefix}/accuracy']
+            if metric_to_check != f'{metric_key_prefix}/pearson' and f'{metric_key_prefix}/pearson' in output.metrics:
+                cur_res[f'{metric_key_prefix}/pearson'] = output.metrics[f'{metric_key_prefix}/pearson']
             # added by Myra Z.
-            if metric_to_check != f'{metric_key_prefix}_pearsonr' and f'{metric_key_prefix}_pearsonr' in output.metrics:
-                cur_res[f'{metric_key_prefix}_pearsonr'] = output.metrics[f'{metric_key_prefix}_pearsonr']
+            if metric_to_check != f'{metric_key_prefix}/pearsonr' and f'{metric_key_prefix}/pearsonr' in output.metrics:
+                cur_res[f'{metric_key_prefix}/pearsonr'] = output.metrics[f'{metric_key_prefix}/pearsonr']
             if self.n_worse_res == self.patience:
                 cur_res['early_stop'] = True
             best_res = {metric_to_check: self.state.best_metric_outside, 'epoch': self.state.best_metric_outside_epoch,
@@ -1959,7 +1960,7 @@ class Trainer:
         self._memory_tracker.stop_and_update_metrics(output.metrics)
         output.metrics['early_stop'] = early_stop
         gating_df = self.model.bert.store_gate_variables(epoch=self.state.epoch, split=metric_key_prefix, is_in_train=self.is_in_train)  #addd by Myra Z.
-        output.metrics.update(gating_metrics(gating_df))
+        output.metrics.update(gating_metrics(split_prefix=metric_key_prefix, gating_df=gating_df))
         return output.metrics
 
     
@@ -2014,7 +2015,7 @@ class Trainer:
         self._memory_tracker.stop_and_update_metrics(output.metrics)
 
         gating_df = self.model.bert.store_gate_variables(epoch=self.state.epoch, split=metric_key_prefix, is_in_train=self.is_in_train)  #addd by Myra Z.
-        output.metrics.update(gating_metrics(gating_df))
+        output.metrics.update(gating_metrics(split_prefix=metric_key_prefix, gating_df=gating_df))
 
         return output
 
@@ -2124,12 +2125,12 @@ class Trainer:
         metrics = denumpify_detensorize(metrics)
 
         if eval_loss is not None:
-            metrics[f"{metric_key_prefix}_loss"] = eval_loss.mean().item()
+            metrics[f"{metric_key_prefix}/loss"] = eval_loss.mean().item()
 
         # Prefix all keys with metric_key_prefix + '_'
         for key in list(metrics.keys()):
-            if not key.startswith(f"{metric_key_prefix}_"):
-                metrics[f"{metric_key_prefix}_{key}"] = metrics.pop(key)
+            if not key.startswith(f"{metric_key_prefix}/"):
+                metrics[f"{metric_key_prefix}/{key}"] = metrics.pop(key)
 
         return PredictionOutput(predictions=preds, label_ids=label_ids, metrics=metrics)
 

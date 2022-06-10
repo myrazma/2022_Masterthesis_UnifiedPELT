@@ -25,6 +25,7 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
+from matplotlib import colors
 
 sys.path.append('../')
 
@@ -745,9 +746,10 @@ def main():
 
     print
 
-    log_plot_gradients(model, tensorboard_writer, use_wandb)
+    #log_plot_gradients(model, tensorboard_writer, use_wandb)
     log_plot_gates(model, tensorboard_writer, use_wandb)
     log_plot_gates_per_layer(model, tensorboard_writer, use_wandb)
+    log_plot_gates_per_epoch(model, tensorboard_writer, use_wandb)
 
 
     # set epoch of trainer state control to None so we know that training is over
@@ -920,16 +922,16 @@ def log_plot_gates(model, tensorboard_writer, use_wandb=False):
                 dataset = gate_per_set[key]
                 dataset = dataset[dataset['encoder_layer'] == layer].reset_index()
                 if count_data_available == 1:
-                    axs.plot(dataset[['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
+                    axs.plot(dataset[['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'], color=['#029e72', '#e69f00', '#f0e441', '#57b4e8'])
                     axs.set_ylabel('gating value')
                     axs.set_title(f'{key} data set')
                 else:
-                    axs[idx].plot(dataset[['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
+                    axs[idx].plot(dataset[['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'], color=['#029e72', '#e69f00', '#f0e441', '#57b4e8'])
                     axs[idx].set_ylabel('gating value')
                     axs[idx].set_title(f'{key} data set')
                 idx += 1
 
-        title = f'Gating Values - Encoder Layer {int(layer) + 1}'
+        title = f'key/gating/layer{int(layer) + 1}'
         fig.suptitle(title)
         plt.legend()
         plt.xlabel('data sample')
@@ -960,17 +962,15 @@ def log_plot_gates_per_layer(model, tensorboard_writer, use_wandb):
             dataset = gate_per_set[key]
             #dataset = dataset[dataset['encoder_layer'] == layer].reset_index()
             grouped_mean = dataset.groupby(['encoder_layer']).agg({'gate_prefix':'mean', 'gate_lora_value':'mean', 'gate_lora_query':'mean', 'gate_adapters':'mean'})
-            #print(grouped_mean)
-            #for i in zip(grouped_mean[['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters']].to_numpy()):
-            #    print(i)
-            #return
+            grouped_std = dataset.groupby(['encoder_layer']).agg({'gate_prefix':'std', 'gate_lora_value':'std', 'gate_lora_query':'std', 'gate_adapters':'std'})
+            
             bar_width = 2
             width = bar_width*4 + bar_width*1.5
             x = grouped_mean.index.to_numpy() * width
-            axs.barh(y=x - ((bar_width/2)+bar_width), width=grouped_mean['gate_prefix'], height=bar_width, label='Prefix Tuning', color='#029e72')#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
-            axs.barh(y=x - (bar_width/2), width=grouped_mean['gate_lora_value'], height=bar_width, label='LoRA value', color='#e69f00')#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
-            axs.barh(y=x + (bar_width/2), width=grouped_mean['gate_lora_query'], height=bar_width, label='LoRA query', color='#f0e441')#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
-            axs.barh(y=x + ((bar_width/2)+bar_width), width=grouped_mean['gate_adapters'], height=bar_width, label='Adapters', color='#57b4e8')#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
+            axs.barh(y=x - ((bar_width/2)+bar_width), xerr=grouped_std['gate_prefix'], width=grouped_mean['gate_prefix'], height=bar_width, label='Prefix Tuning', color='#029e72')#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
+            axs.barh(y=x - (bar_width/2), xerr=grouped_std['gate_lora_value'], width=grouped_mean['gate_lora_value'], height=bar_width, label='LoRA value', color='#e69f00')#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
+            axs.barh(y=x + (bar_width/2), xerr=grouped_std['gate_lora_query'], width=grouped_mean['gate_lora_query'], height=bar_width, label='LoRA query', color='#f0e441')#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
+            axs.barh(y=x + ((bar_width/2)+bar_width), xerr=grouped_std['gate_adapters'], width=grouped_mean['gate_adapters'], height=bar_width, label='Adapters', color='#57b4e8')#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
             axs.set_ylabel('Encoder Layer')
             axs.set_yticklabels(grouped_mean.index.to_numpy())
             axs.set_yticks(x)
@@ -987,6 +987,55 @@ def log_plot_gates_per_layer(model, tensorboard_writer, use_wandb):
             if use_wandb:
                 wandb.log({f'{key}/gating_layers': wandb.Image(plt)})
             plt.close()
+
+def log_plot_gates_per_epoch(model, tensorboard_writer=None, use_wandb=False):
+    gates = model.bert.gates
+    encoder_layers = sorted(set(gates['encoder_layer']))
+
+    last_train = gates[(gates['split'] == 'train') & (gates['is_in_train'] == True)].reset_index()
+    after_train_eval = gates[(gates['split'] == 'eval') & (gates['is_in_train'] == False)].reset_index()
+    after_train_test = gates[(gates['split'] == 'test') & (gates['is_in_train'] == False)].reset_index()
+
+    show_plot_crit = lambda key: len(gate_per_set[key]) > 0 if key in gate_per_set.keys() else False # criterion to not show the plot for the data set, here: if dataset not used / df is empty
+    gate_per_set = {'train':last_train, 'eval':after_train_eval, 'test':after_train_test}
+    
+    idx = 0
+    for key in gate_per_set.keys():
+        if show_plot_crit(key):
+            dataset = gate_per_set[key]
+            grouped_mean = dataset.groupby(['encoder_layer', 'epoch']).agg({'gate_prefix':'mean', 'gate_lora_value':'mean', 'gate_lora_query':'mean', 'gate_adapters':'mean'})
+            grouped_std = dataset.groupby(['encoder_layer', 'epoch']).agg({'gate_prefix':'std', 'gate_lora_value':'std', 'gate_lora_query':'std', 'gate_adapters':'std'})
+            for layer in encoder_layers:
+                layer_mean = grouped_mean.loc[layer]
+                layer_std = grouped_std.loc[layer]
+                fig, axs = plt.subplots()
+                bar_width = 2
+                width = bar_width*4 + bar_width*1.5
+                colors = ['#029e72', '#e69f00', '#f0e441', '#57b4e8']
+                for i, col in enumerate(['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters']):
+                    x = np.array(range(len(layer_mean[col].to_numpy())))
+                    axs.plot(x, layer_mean[col].to_numpy(), c=colors[i], label=col[5:])
+                    axs.fill_between(x, layer_mean[col].to_numpy() + layer_std[col].to_numpy(), layer_mean[col].to_numpy() - layer_std[col].to_numpy(), color=colors[i], alpha=0.5)
+                if len(x) <= 1:
+                    plt.close()
+                    continue
+                axs.set_xlabel('epochs')
+                axs.set_ylabel('gating value')
+                axs.set_ylim(0,1)
+                axs.set_xticks(x)
+                axs.set_xticklabels([str(item + 1) for item in x])
+                axs.set_title(f'Layer {layer +1}: Mean of the Gating Values with Std \n {key} data')
+                axs.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+                idx += 1
+                fig.tight_layout()
+                
+                plt.show()
+                title = f'{key}/gating_layer{layer + 1}'
+                if tensorboard_writer is not None:
+                    tensorboard_writer.add_figure(title, plt.gcf())
+                if use_wandb:
+                    wandb.log({title: wandb.Image(plt)})
+                plt.close()
 
 
 def _mp_fn(index):

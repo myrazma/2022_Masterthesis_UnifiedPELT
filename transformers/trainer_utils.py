@@ -239,13 +239,13 @@ def speed_metrics(split, start_time, num_samples=None):
     - num_samples: number of samples processed
     """
     runtime = time.time() - start_time
-    result = {f"{split}_runtime": round(runtime, 4)}
+    result = {f"{split}/runtime": round(runtime, 4)}
     if num_samples is not None:
         samples_per_second = 1 / (runtime / num_samples)
-        result[f"{split}_samples_per_second"] = round(samples_per_second, 3)
+        result[f"{split}/samples_per_second"] = round(samples_per_second, 3)
     return result
 
-def gating_metrics(gating_df):
+def gating_metrics(split_prefix, gating_df):
     """Create metrics dictionary for the gating values
     Added by Myra Z.
 
@@ -256,10 +256,11 @@ def gating_metrics(gating_df):
     if len(splits) > 1:
         print(f'\nMyWarning: Encountered data from multiple splits while saving gating to metrics: {splits}')
     grouped_mean = gating_df.groupby(['encoder_layer']).agg({'gate_prefix':'mean', 'gate_lora_value':'mean', 'gate_lora_query':'mean', 'gate_adapters':'mean'})  
+    grouped_std = gating_df.groupby(['encoder_layer']).agg({'gate_prefix':'std', 'gate_lora_value':'std', 'gate_lora_query':'std', 'gate_adapters':'std'})  
     gating_metrics = {}
     for col in grouped_mean.columns:
         for layer in grouped_mean.index.to_list():
-            key = f'gating/layer_{layer+1}/{col[5:]}'
+            key = f'{split_prefix}/gating/layer_{layer+1}_{col[5:]}'
             value = grouped_mean[col][layer]
             if value is not None:
                 gating_metrics[key] = float(value)
