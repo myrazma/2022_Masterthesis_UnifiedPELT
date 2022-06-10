@@ -739,8 +739,8 @@ def main():
         #print('\n -------------------------- trainer state', trainer.state.log_history)
         print(metrics)
         # print(model)
-        trainer.log_metrics("train", metrics)
-        trainer.save_metrics("train", metrics)
+        trainer.log_metrics("train_123", metrics)
+        trainer.save_metrics("train_123", metrics)
         trainer.save_state()
         log_wandb(metrics, use_wandb)  # Added by Myra Z.: log wandb is use_wandb == True
 
@@ -1030,7 +1030,7 @@ def log_plot_gates_per_epoch(model, tensorboard_writer=None, use_wandb=False):
                 fig.tight_layout()
                 
                 plt.show()
-                title = f'{key}/gating_layer{layer + 1}'
+                title = f'{key}/gating/layer{layer + 1}'
                 if tensorboard_writer is not None:
                     tensorboard_writer.add_figure(title, plt.gcf())
                 if use_wandb:
