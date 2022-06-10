@@ -953,11 +953,7 @@ def log_plot_gates_per_layer(model, tensorboard_writer, use_wandb):
     gate_per_set = {'train':last_train, 'eval':after_train_eval, 'test':after_train_test}
     count_data_available = sum([1 for key in gate_per_set.keys() if show_plot_crit(key)])
 
-
-    #fig, axs = plt.subplots(count_data_available, sharey=False, sharex=False, constrained_layout=True, figsize=(10,20))
     idx = 0
-    #layer = int(layer)
-    # TODO filter per layer
     for key in gate_per_set.keys():
         if show_plot_crit(key):
             fig, axs = plt.subplots()
