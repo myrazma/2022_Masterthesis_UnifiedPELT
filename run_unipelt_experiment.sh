@@ -20,7 +20,7 @@ do
     for pelt_method in "${methods[@]}"
     do 
         i=$(($i+1))
-        echo "--------------- Run $i of $runs_total ---------------"
+        echo "--------------- Run $i of $range_runs ---------------"
         
         #pelt_method="full"
         #pelt_method="unipelt"
