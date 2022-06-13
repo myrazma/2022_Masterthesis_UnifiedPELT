@@ -1018,7 +1018,7 @@ def log_plot_gates_per_epoch(model, tensorboard_writer=None, use_wandb=False):
             dataset.dropna(axis=1, inplace=True)
             print('AFTER DROPNA')
             print(dataset)
-            available_columns = [c for c in columns if c is dataset.columns]
+            available_columns = [c for c in columns if c in dataset.columns]
             if len(available_columns) < 1:  # No column available -> no plot
                 continue
             grouped_mean = dataset.groupby(['encoder_layer', 'epoch']).agg({c: 'mean' for c in available_columns})
