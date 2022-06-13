@@ -902,6 +902,8 @@ def log_plot_gradients(model, tensorboard_writer, use_wandb=False):
 
 def log_plot_gates(model, tensorboard_writer, use_wandb=False):
     gates = model.bert.gates
+    if gates.empty:
+        return
     encoder_layers = sorted(set(gates['encoder_layer']))
     # get eval and train of last epoch while in train
     last_train = gates[(gates['split'] == 'train_evaluation') & (gates['epoch'] == max(gates['epoch'])) & (gates['is_in_train'] == True)].reset_index()
@@ -955,6 +957,8 @@ def log_plot_gates(model, tensorboard_writer, use_wandb=False):
 
 def log_plot_gates_per_layer(model, tensorboard_writer, use_wandb):
     gates = model.bert.gates
+    if gates.empty:
+        return
     encoder_layers = sorted(set(gates['encoder_layer']))
     # get eval and train of last epoch while in train
     last_train = gates[(gates['split'] == 'train') & (gates['epoch'] == max(gates['epoch'])) & (gates['is_in_train'] == True)].reset_index()
@@ -1000,6 +1004,8 @@ def log_plot_gates_per_layer(model, tensorboard_writer, use_wandb):
 
 def log_plot_gates_per_epoch(model, tensorboard_writer=None, use_wandb=False):
     gates = model.bert.gates
+    if gates.empty:
+        return
     encoder_layers = sorted(set(gates['encoder_layer']))
 
     last_train = gates[(gates['split'] == 'train') & (gates['is_in_train'] == True)].reset_index()
