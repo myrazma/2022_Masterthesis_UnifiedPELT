@@ -928,14 +928,14 @@ def log_plot_gates(model, tensorboard_writer, use_wandb=False):
                     for i, col in enumerate(columns):
                         if col not in dataset.columns:
                             continue
-                        axs.plot(dataset[col].to_numpy(), label=[col[5:]], c=COLORS[i])
+                        axs.plot(dataset[col].to_numpy(), label=col[5:], c=COLORS[i])
                     axs.set_ylabel('gating value')
                     axs.set_title(f'{key} data set')
                 else:
                     for i, col in enumerate(columns):
                         if col not in dataset.columns:
                             continue
-                        axs[idx].plot(dataset[col].to_numpy(), label=[col[5:]], c=COLORS[i])
+                        axs[idx].plot(dataset[col].to_numpy(), label=col[5:], c=COLORS[i])
                     #axs[idx].plot(dataset[['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
                     axs[idx].set_ylabel('gating value')
                     axs[idx].set_title(f'{key} data set')
@@ -1031,8 +1031,11 @@ def log_plot_gates_per_epoch(model, tensorboard_writer=None, use_wandb=False):
                 width = bar_width*4 + bar_width*1.5
                 
                 for i, col in enumerate(columns):
-                    if col not in layer_mean.columns() or col not in layer_std.columns():
+                    if col not in available_columns:
+                        print('col {col} no in available columns ')
                         continue
+
+                    print('col {col} is in available columns ')
                     x = np.array(range(len(layer_mean[col].to_numpy())))
                     axs.plot(x, layer_mean[col].to_numpy(), c=COLORS[i], label=col[5:])
                     axs.fill_between(x, layer_mean[col].to_numpy() + layer_std[col].to_numpy(), layer_mean[col].to_numpy() - layer_std[col].to_numpy(), color=COLORS[i], alpha=0.5)
