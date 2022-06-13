@@ -89,7 +89,7 @@ do
         # BitFit
         if [ $pelt_method == "bitfit" ]; then
             echo "Using BitFit"
-            learning_rate=1e-4
+            learning_rate=1e-3
             tensorboard_output_dir=runs/pelt_bitfit_bert
             add_enc_prefix=False
             train_adapter=False
