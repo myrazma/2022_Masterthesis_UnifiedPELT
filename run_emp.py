@@ -1016,8 +1016,8 @@ def log_plot_gates_per_epoch(model, tensorboard_writer=None, use_wandb=False):
             dataset = gate_per_set[key]
             dataset.dropna(axis=1, inplace=True)
             available_columns = [c for c in columns if c is dataset.columns]
-            grouped_mean = dataset.groupby(['encoder_layer', 'epoch']).agg({available_columns: 'mean' for c in columns})
-            grouped_std = dataset.groupby(['encoder_layer', 'epoch']).agg({available_columns: 'std' for c in columns})
+            grouped_mean = dataset.groupby(['encoder_layer', 'epoch']).agg({c: 'mean' for c in available_columns})
+            grouped_std = dataset.groupby(['encoder_layer', 'epoch']).agg({c: 'std' for c in available_columns})
             for layer in encoder_layers:
                 layer_mean = grouped_mean.loc[layer]
                 layer_std = grouped_std.loc[layer]
