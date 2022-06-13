@@ -739,8 +739,8 @@ def main():
         #print('\n -------------------------- trainer state', trainer.state.log_history)
         print(metrics)
         # print(model)
-        trainer.log_metrics("training", metrics)
-        trainer.save_metrics("training", metrics)
+        trainer.log_metrics("train", metrics)
+        trainer.save_metrics("train", metrics)
         trainer.save_state()
         log_wandb(metrics, use_wandb)  # Added by Myra Z.: log wandb is use_wandb == True
 
@@ -775,8 +775,8 @@ def main():
             max_val_samples = data_args.max_val_samples if data_args.max_val_samples is not None else len(eval_dataset)
             metrics["eval_samples"] = min(max_val_samples, len(eval_dataset))
 
-            trainer.log_metrics("evaluation", metrics)
-            trainer.save_metrics("evaluation", metrics)
+            trainer.log_metrics("eval", metrics)
+            trainer.save_metrics("eval", metrics)
             log_wandb(metrics, use_wandb)  # Added by Myra Z.: log wandb is use_wandb == True
             
             predictions = trainer.predict(test_dataset=eval_dataset).predictions
@@ -917,17 +917,26 @@ def log_plot_gates(model, tensorboard_writer, use_wandb=False):
         idx = 0
         print('Non empty datasets:', count_data_available)
         for key in gate_per_set.keys():
+            columns = ['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters']
             if show_plot_crit(key):
                 #print(gate_per_set[key]) 
                 dataset = gate_per_set[key]
                 dataset = dataset[dataset['encoder_layer'] == layer].reset_index()
-                color=['#029e72', '#e69f00', '#f0e441', '#57b4e8']
+                dataset.dropna(axis=1, inplace=True)
+               
                 if count_data_available == 1:
-                    axs.plot(dataset[['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
+                    for i, col in enumerate(columns):
+                        if col not in dataset.columns:
+                            continue
+                        axs.plot(dataset[col].to_numpy(), label=[col[5:]], c=COLORS[i])
                     axs.set_ylabel('gating value')
                     axs.set_title(f'{key} data set')
                 else:
-                    axs[idx].plot(dataset[['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
+                    for i, col in enumerate(columns):
+                        if col not in dataset.columns:
+                            continue
+                        axs[idx].plot(dataset[col].to_numpy(), label=[col[5:]], c=COLORS[i])
+                    #axs[idx].plot(dataset[['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
                     axs[idx].set_ylabel('gating value')
                     axs[idx].set_title(f'{key} data set')
                 idx += 1
@@ -1002,10 +1011,13 @@ def log_plot_gates_per_epoch(model, tensorboard_writer=None, use_wandb=False):
     
     idx = 0
     for key in gate_per_set.keys():
+        columns = ['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters']
         if show_plot_crit(key):
             dataset = gate_per_set[key]
-            grouped_mean = dataset.groupby(['encoder_layer', 'epoch']).agg({'gate_prefix':'mean', 'gate_lora_value':'mean', 'gate_lora_query':'mean', 'gate_adapters':'mean'})
-            grouped_std = dataset.groupby(['encoder_layer', 'epoch']).agg({'gate_prefix':'std', 'gate_lora_value':'std', 'gate_lora_query':'std', 'gate_adapters':'std'})
+            dataset.dropna(axis=1, inplace=True)
+            available_columns = [c for c in columns if c is dataset.columns]
+            grouped_mean = dataset.groupby(['encoder_layer', 'epoch']).agg({available_columns: 'mean' for c in columns})
+            grouped_std = dataset.groupby(['encoder_layer', 'epoch']).agg({available_columns: 'std' for c in columns})
             for layer in encoder_layers:
                 layer_mean = grouped_mean.loc[layer]
                 layer_std = grouped_std.loc[layer]
@@ -1013,7 +1025,9 @@ def log_plot_gates_per_epoch(model, tensorboard_writer=None, use_wandb=False):
                 bar_width = 2
                 width = bar_width*4 + bar_width*1.5
                 
-                for i, col in enumerate(['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters']):
+                for i, col in enumerate(columns):
+                    if col not in layer_mean.columns() or col not in layer_std.columns():
+                        continue
                     x = np.array(range(len(layer_mean[col].to_numpy())))
                     axs.plot(x, layer_mean[col].to_numpy(), c=COLORS[i], label=col[5:])
                     axs.fill_between(x, layer_mean[col].to_numpy() + layer_std[col].to_numpy(), layer_mean[col].to_numpy() - layer_std[col].to_numpy(), color=COLORS[i], alpha=0.5)
