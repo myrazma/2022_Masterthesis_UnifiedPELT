@@ -1014,10 +1014,7 @@ def log_plot_gates_per_epoch(model, tensorboard_writer=None, use_wandb=False):
         columns = ['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters']
         if show_plot_crit(key):
             dataset = gate_per_set[key]
-            print(dataset)
             dataset.dropna(axis=1, inplace=True)
-            print('AFTER DROPNA')
-            print(dataset)
             available_columns = [c for c in columns if c in dataset.columns]
             if len(available_columns) < 1:  # No column available -> no plot
                 continue
