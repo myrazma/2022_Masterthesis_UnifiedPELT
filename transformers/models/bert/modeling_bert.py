@@ -1150,7 +1150,10 @@ class BertModel(BertModelAdaptersMixin, BertPreTrainedModel):
                 if len(prefix_gate) < 1:  # then prefix is not used
                     prefix_gate = None
             
-            gate_dict = pd.DataFrame({'gate_prefix': prefix_gate, 'gate_lora_value': lora_gate_value, 'gate_lora_query': lora_gate_query, 'gate_adapters': gate_output_d, 'encoder_layer': idx, 'epoch': epoch, 'split': split, 'is_in_train':is_in_train})
+            if prefix_gate is None and lora_gate_value is None and lora_gate_query is None and gate_output_d is None:
+                gate_dict = pd.DataFrame()
+            else:
+                gate_dict = pd.DataFrame({'gate_prefix': prefix_gate, 'gate_lora_value': lora_gate_value, 'gate_lora_query': lora_gate_query, 'gate_adapters': gate_output_d, 'encoder_layer': idx, 'epoch': epoch, 'split': split, 'is_in_train':is_in_train})
             
             current_gate = pd.concat([current_gate, gate_dict], ignore_index=True)
             # clear the varaibles after they are stored
