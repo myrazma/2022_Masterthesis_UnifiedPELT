@@ -97,7 +97,7 @@ task_to_keys = {
 
 logger = logging.getLogger(__name__)
 
-
+COLORS = ['#029e72', '#e69f00', '#f0e441', '#57b4e8']
 
 
 @dataclass
@@ -739,8 +739,8 @@ def main():
         #print('\n -------------------------- trainer state', trainer.state.log_history)
         print(metrics)
         # print(model)
-        trainer.log_metrics("train_123", metrics)
-        trainer.save_metrics("train_123", metrics)
+        trainer.log_metrics("training", metrics)
+        trainer.save_metrics("training", metrics)
         trainer.save_state()
         log_wandb(metrics, use_wandb)  # Added by Myra Z.: log wandb is use_wandb == True
 
@@ -775,8 +775,8 @@ def main():
             max_val_samples = data_args.max_val_samples if data_args.max_val_samples is not None else len(eval_dataset)
             metrics["eval_samples"] = min(max_val_samples, len(eval_dataset))
 
-            trainer.log_metrics("eval", metrics)
-            trainer.save_metrics("eval", metrics)
+            trainer.log_metrics("evaluation", metrics)
+            trainer.save_metrics("evaluation", metrics)
             log_wandb(metrics, use_wandb)  # Added by Myra Z.: log wandb is use_wandb == True
             
             predictions = trainer.predict(test_dataset=eval_dataset).predictions
@@ -932,7 +932,7 @@ def log_plot_gates(model, tensorboard_writer, use_wandb=False):
                     axs[idx].set_title(f'{key} data set')
                 idx += 1
 
-        title = f'key/gating/layer{int(layer) + 1}'
+        title = f'{key}/gating/layer{int(layer) + 1}'
         fig.suptitle(title)
         plt.legend()
         plt.xlabel('data sample')
@@ -994,7 +994,7 @@ def log_plot_gates_per_epoch(model, tensorboard_writer=None, use_wandb=False):
     encoder_layers = sorted(set(gates['encoder_layer']))
 
     last_train = gates[(gates['split'] == 'train') & (gates['is_in_train'] == True)].reset_index()
-    after_train_eval = gates[(gates['split'] == 'eval') & (gates['is_in_train'] == False)].reset_index()
+    after_train_eval = gates[(gates['split'] == 'eval') & (gates['is_in_train'] == True)].reset_index()
     after_train_test = gates[(gates['split'] == 'test') & (gates['is_in_train'] == False)].reset_index()
 
     show_plot_crit = lambda key: len(gate_per_set[key]) > 0 if key in gate_per_set.keys() else False # criterion to not show the plot for the data set, here: if dataset not used / df is empty
@@ -1012,11 +1012,11 @@ def log_plot_gates_per_epoch(model, tensorboard_writer=None, use_wandb=False):
                 fig, axs = plt.subplots()
                 bar_width = 2
                 width = bar_width*4 + bar_width*1.5
-                colors = ['#029e72', '#e69f00', '#f0e441', '#57b4e8']
+                
                 for i, col in enumerate(['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters']):
                     x = np.array(range(len(layer_mean[col].to_numpy())))
-                    axs.plot(x, layer_mean[col].to_numpy(), c=colors[i], label=col[5:])
-                    axs.fill_between(x, layer_mean[col].to_numpy() + layer_std[col].to_numpy(), layer_mean[col].to_numpy() - layer_std[col].to_numpy(), color=colors[i], alpha=0.5)
+                    axs.plot(x, layer_mean[col].to_numpy(), c=COLORS[i], label=col[5:])
+                    axs.fill_between(x, layer_mean[col].to_numpy() + layer_std[col].to_numpy(), layer_mean[col].to_numpy() - layer_std[col].to_numpy(), color=COLORS[i], alpha=0.5)
                 if len(x) <= 1:
                     plt.close()
                     continue
@@ -1031,7 +1031,7 @@ def log_plot_gates_per_epoch(model, tensorboard_writer=None, use_wandb=False):
                 fig.tight_layout()
                 
                 plt.show()
-                title = f'{key}/gating/layer{layer + 1}'
+                title = f'{key}/gating_plot/layer{layer + 1}'
                 if tensorboard_writer is not None:
                     tensorboard_writer.add_figure(title, plt.gcf())
                 if use_wandb:
