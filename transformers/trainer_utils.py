@@ -252,6 +252,8 @@ def gating_metrics(split_prefix, gating_df):
     Args:
         gating_df (_type_): The gating dictionary (columns should include all gating values, encoder layer and split)
     """
+    if gating_df.empty:
+        return {}
     splits = set(gating_df['split'].to_list())
     if len(splits) > 1:
         print(f'\nMyWarning: Encountered data from multiple splits while saving gating to metrics: {splits}')
