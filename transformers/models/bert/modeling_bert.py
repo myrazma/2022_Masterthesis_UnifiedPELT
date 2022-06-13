@@ -8,6 +8,7 @@
 
 import math
 import os
+from sys import prefix
 import warnings
 from dataclasses import dataclass
 from typing import Optional, Tuple
@@ -1137,15 +1138,28 @@ class BertModel(BertModelAdaptersMixin, BertPreTrainedModel):
                     gate_output_d = [gate for batch in layer.output.gate_output_d[layer_adapter_name] for gate in list(batch)]
                 except:
                     print('len(layer.output.gate_output_d) did not work')
-                        
+                print('\n \n Length of adapters gate')
+                print(len(gate_output_d))
+                print('\n \n ')
+
             if isinstance(layer.attention.self.query, LoRA_Linear):
                 lora_gate_query = [gate for batch in layer.attention.self.query.lora_gate_output_l for gate in list(batch)]
+                print('\n \n Length of lora query gate')
+                print(len(lora_gate_query))
+                print('\n \n ') 
 
             if isinstance(layer.attention.self.value, LoRA_Linear):
                 lora_gate_value = [gate for batch in layer.attention.self.value.lora_gate_output_l for gate in list(batch)]
+                print('\n \n Length of lora value')
+                print(len(lora_gate_value))
+                print('\n \n ')
 
-            if isinstance(layer.attention.self, BertSelfAttention):
+            if isinstance(layer.attention.self, BertSelfAttention):  # TODO: This is the issue
                 prefix_gate = [gate for batch in layer.attention.self.prefix_gate_output_l for gate in list(batch)]
+                print('\n \n Length of Prefix gate')
+                print(len(prefix_gate))
+                print('\n \n ')
+            
 
             gate_dict = pd.DataFrame({'gate_prefix': prefix_gate, 'gate_lora_value': lora_gate_value, 'gate_lora_query': lora_gate_query, 'gate_adapters': gate_output_d, 'encoder_layer': idx, 'epoch': epoch, 'split': split, 'is_in_train':is_in_train})
             

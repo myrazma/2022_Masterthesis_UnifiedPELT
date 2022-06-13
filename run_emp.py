@@ -1032,10 +1032,8 @@ def log_plot_gates_per_epoch(model, tensorboard_writer=None, use_wandb=False):
                 
                 for i, col in enumerate(columns):
                     if col not in available_columns:
-                        print('col {col} no in available columns ')
                         continue
 
-                    print('col {col} is in available columns ')
                     x = np.array(range(len(layer_mean[col].to_numpy())))
                     axs.plot(x, layer_mean[col].to_numpy(), c=COLORS[i], label=col[5:])
                     axs.fill_between(x, layer_mean[col].to_numpy() + layer_std[col].to_numpy(), layer_mean[col].to_numpy() - layer_std[col].to_numpy(), color=COLORS[i], alpha=0.5)
