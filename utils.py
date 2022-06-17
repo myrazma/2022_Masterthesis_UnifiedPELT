@@ -10,13 +10,13 @@ from datetime import datetime
 import pandas as pd
 from lora_layers import LoRA_Linear
 
+try:
+    from .transformers.adapters.layer import AdapterLayerBaseMixin
+    from .transformers.models.bert.modeling_bert import BertSelfAttention
+except:
+    from transformers.adapters.layer import AdapterLayerBaseMixin
+    from transformers.models.bert.modeling_bert import BertSelfAttention
 
-from pathlib import Path
-import sys
-path_root = Path(__file__).parents[1]
-sys.path.append(str(path_root))
-from .transformers.adapters.layer import AdapterLayerBaseMixin
-from .transformers.models.bert.modeling_bert import BertSelfAttention
 
 
 def freeze_params_by_layers(model, num_enc_layers, num_frozen_layers=0):
