@@ -257,4 +257,13 @@ class ModelArguments:
         default=False,
         metadata={"help": "add a shared gate"},
     )
+    # Multiinput parameters, mostly not needed
+    use_pca_features: bool = field(
+        default=False,
+        metadata={"help": "Use PCA features. Only works for multiinput model."},
+    )
+    use_lexical_features: bool = field(
+        default=False,
+        metadata={"help": "Use lexical features. Only works for multiinput model."},
+    )
 
