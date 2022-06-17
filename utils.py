@@ -9,8 +9,8 @@ import time
 from datetime import datetime
 import pandas as pd
 from lora_layers import LoRA_Linear
-from transformers.adapters.layer import AdapterLayerBaseMixin
-from transformers.models.bert.modeling_bert import BertSelfAttention
+from .transformers.adapters.layer import AdapterLayerBaseMixin
+from .transformers.models.bert.modeling_bert import BertSelfAttention
 
 
 def freeze_params_by_layers(model, num_enc_layers, num_frozen_layers=0):
