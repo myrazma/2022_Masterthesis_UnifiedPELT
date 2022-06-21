@@ -78,6 +78,18 @@ class DataTrainingArguments:
                     "value if set."
         },
     )
+    # added by Myra Z.
+    wandb_entity: Optional[str] = field(
+        default=None, metadata={"help": "The entity name of the wandb user. Leave empty if you do not wish to use wandb"}
+    )
+    # added by Myra Z.
+    use_tensorboard: Optional[bool] = field(
+        default=False, metadata={"help": "If True, use a writer for tensorboard"}
+    )
+    # added by Myra Z.
+    tensorboard_output_dir: str = field(
+        default="runs/", metadata={"help": "Path to the sub directory of the writer. Saves in runs/ + output_dir"}
+    )
     # edited by Myra Z.
     train_file: Optional[str] = field(
         default=data_dir.default + '/buechel_empathy/messages_train_ready_for_WS.tsv', metadata={"help": "A csv or a json file containing the training data."}
@@ -115,24 +127,6 @@ class DataTrainingArguments:
         elif (not os.path.exists(self.train_file)) or (not os.path.exists(self.validation_file))or (not os.path.exists(self.validation_labels_file)):
             raise ValueError(f"The buechel_empathy data does not exist {self.data_dir} or is not stored / named corretly. The data should be in dir /buechel_empathy/")
 
-        """
-        if self.task_name is not None:
-            self.task_name = self.task_name.lower()
-            if self.task_name not in task_to_keys.keys():
-                raise ValueError("Unknown task, you should pick one in " + ",".join(task_to_keys.keys()))
-        elif not os.path.exists(self.data_dir):  # Addition from Myra Zmarsly
-            raise ValueError("The data directory: {self.data_dir} does not exists.")
-        #elif self.train_file is None or self.validation_file is None:
-        #     raise ValueError("Need either a GLUE task or a training/validation file.")
-        else:
-            train_extension = self.train_file.split(".")[-1]
-            assert train_extension in ["csv", "json"], "`train_file` should be a csv or a json file."
-            validation_extension = self.validation_file.split(".")[-1]
-            assert (
-                    validation_extension == train_extension
-            ), "`validation_file` should have the same extension (csv or json) as `train_file`."
-            """
-
 
 @dataclass
 class ModelArguments:
@@ -145,18 +139,6 @@ class ModelArguments:
     )
     config_name: Optional[str] = field(
         default=None, metadata={"help": "Pretrained config name or path if not the same as model_name"}
-    )
-    # added by Myra Z.
-    wandb_entity: Optional[str] = field(
-        default=None, metadata={"help": "The entity name of the wandb user. Leave empty if you do not wish to use wandb"}
-    )
-    # added by Myra Z.
-    use_tensorboard: bool = field(
-        default=False, metadata={"help": "If True, use a writer for tensorboard"}
-    )
-    # added by Myra Z.
-    tensorboard_output_dir: str = field(
-        default="runs/", metadata={"help": "Path to the sub directory of the writer. Saves in runs/ + output_dir"}
     )
     tokenizer_name: Optional[str] = field(
         default=None, metadata={"help": "Pretrained tokenizer name or path if not the same as model_name"}
@@ -257,13 +239,3 @@ class ModelArguments:
         default=False,
         metadata={"help": "add a shared gate"},
     )
-    # Multiinput parameters, mostly not needed
-    use_pca_features: bool = field(
-        default=False,
-        metadata={"help": "Use PCA features. Only works for multiinput model."},
-    )
-    use_lexical_features: bool = field(
-        default=False,
-        metadata={"help": "Use lexical features. Only works for multiinput model."},
-    )
-
