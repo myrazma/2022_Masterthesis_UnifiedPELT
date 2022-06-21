@@ -14,8 +14,11 @@ try:
     from .transformers.adapters.layer import AdapterLayerBaseMixin
     from .transformers.models.bert.modeling_bert import BertSelfAttention
 except:
-    from transformers.adapters.layer import AdapterLayerBaseMixin
-    from transformers.models.bert.modeling_bert import BertSelfAttention
+    try:
+        from transformers.adapters.layer import AdapterLayerBaseMixin
+        from transformers.models.bert.modeling_bert import BertSelfAttention
+    except:
+        print('Cant import from own transformers module')
 
 
 
