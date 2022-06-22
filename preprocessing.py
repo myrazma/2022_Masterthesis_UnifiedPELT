@@ -178,7 +178,7 @@ def create_dataloaders_multi_in(inputs, masks, labels, lexical_features, batch_s
 #         Complete Preprocessing of the data
 # ---------------------------------------------------
 
-def get_preprocessed_dataset(data_pd, tokenizer, seed, return_huggingface_ds=False, padding='max_length'):
+def get_preprocessed_dataset(data_pd, tokenizer, seed, return_huggingface_ds=False, padding='max_length', shuffle=True):
     """Preprocess the data from input as pandas pd and return a TensorDataset
     
     Do the following steps:
@@ -215,13 +215,13 @@ def get_preprocessed_dataset(data_pd, tokenizer, seed, return_huggingface_ds=Fal
 
 
     # --- shuffle data ---
-    data_encoded_shuff = data_encoded.shuffle(seed=seed)
+    if shuffle: data_encoded = data_encoded.shuffle(seed=seed)
     # get input_ids, attention_mask and labels as numpy arrays and cast types
-    input_ids_train = np.array(data_encoded_shuff["input_ids"]).astype(int)
-    attention_mask_train = np.array(data_encoded_shuff["attention_mask"]).astype(int)
+    input_ids_train = np.array(data_encoded["input_ids"]).astype(int)
+    attention_mask_train = np.array(data_encoded["attention_mask"]).astype(int)
     if has_label:
-        label_empathy_train = np.array(data_encoded_shuff["empathy"]).astype(np.float32).reshape(-1, 1)
-        label_distress_train = np.array(data_encoded_shuff["distress"]).astype(np.float32).reshape(-1, 1)
+        label_empathy_train = np.array(data_encoded["empathy"]).astype(np.float32).reshape(-1, 1)
+        label_distress_train = np.array(data_encoded["distress"]).astype(np.float32).reshape(-1, 1)
 
         # --- scale labels: map empathy and distress labels from [1,7] to [0,1] ---
         label_scaled_empathy_train = normalize_scores(label_empathy_train, (1,7))
