@@ -1722,7 +1722,7 @@ class BertForSequenceClassification(ModelWithHeadsAdaptersMixin, BertPreTrainedM
         classfier_hidden_size = config.hidden_size
         try:  # if feature_dim in config: add to hidden dim
             classfier_hidden_size = config.hidden_size + config.feature_dim
-            print(f'new hidden size: {config.hidden_size} ({config.feature_dim} additional features)')
+            print(f'new hidden size: {classfier_hidden_size} ({config.feature_dim} additional features)')
         except:
             pass
         self.classifier = nn.Linear(classfier_hidden_size, config.num_labels)
@@ -1779,10 +1779,19 @@ class BertForSequenceClassification(ModelWithHeadsAdaptersMixin, BertPreTrainedM
                 
         # Added by Myra Z. for multi input        
         concat_output = pooled_output
+
+        if lexical is not None:
+            print('lexical', lexical.size())
+        else:
+            print('lexical is None')
+        if pca is not None:
+            print('pca', pca.size())
+        else:
+            print('pca is None')
         concat_output = torch.cat((concat_output, lexical), 1) if lexical is not None else concat_output  # add lexical features
         concat_output = torch.cat((concat_output, pca), 1) if pca is not None else concat_output  # add pca features
    
-        logits = self.classifier(pooled_output)
+        logits = self.classifier(concat_output)
 
         loss = None
         if labels is not None:
