@@ -1719,7 +1719,13 @@ class BertForSequenceClassification(ModelWithHeadsAdaptersMixin, BertPreTrainedM
 
         self.bert = BertModel(config)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
-        self.classifier = nn.Linear(config.hidden_size, config.num_labels)
+        classfier_hidden_size = config.hidden_size
+        try:  # if feature_dim in config: add to hidden dim
+            classfier_hidden_size = config.hidden_size + config.feature_dim
+            print(f'new hidden size: {config.hidden_size} ({config.feature_dim} additional features)')
+        except:
+            pass
+        self.classifier = nn.Linear(classfier_hidden_size, config.num_labels)
 
         self.init_weights()
 
