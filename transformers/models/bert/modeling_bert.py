@@ -947,7 +947,7 @@ class BertModel(BertModelAdaptersMixin, BertPreTrainedModel):
 
         self.init_weights()
 
-        self.gates = pd.DataFrame()  # added by Myra Z.
+        self.gates = pd.DataFrame()  # added by Myra Z., for monitoring the gates of UniPELT
 
     def get_input_embeddings(self):
         return self.embeddings.word_embeddings
@@ -1743,6 +1743,8 @@ class BertForSequenceClassification(ModelWithHeadsAdaptersMixin, BertPreTrainedM
             output_hidden_states=None,
             return_dict=None,
             adapter_names=None,
+            lexical=None,  # added by Myra Z.
+            pca=None,  # added by Myra Z.
     ):
         r"""
         labels (:obj:`torch.LongTensor` of shape :obj:`(batch_size,)`, `optional`):
@@ -1768,6 +1770,12 @@ class BertForSequenceClassification(ModelWithHeadsAdaptersMixin, BertPreTrainedM
         pooled_output = outputs[1]
 
         pooled_output = self.dropout(pooled_output)
+                
+        # Added by Myra Z. for multi input        
+        concat_output = pooled_output
+        concat_output = torch.cat((concat_output, lexical), 1) if lexical is not None else concat_output  # add lexical features
+        concat_output = torch.cat((concat_output, pca), 1) if pca is not None else concat_output  # add pca features
+   
         logits = self.classifier(pooled_output)
 
         loss = None
