@@ -1779,15 +1779,6 @@ class BertForSequenceClassification(ModelWithHeadsAdaptersMixin, BertPreTrainedM
                 
         # Added by Myra Z. for multi input        
         concat_output = pooled_output
-
-        if lexical is not None:
-            print('lexical', lexical.size())
-        else:
-            print('lexical is None')
-        if pca is not None:
-            print('pca', pca.size())
-        else:
-            print('pca is None')
         concat_output = torch.cat((concat_output, lexical), 1) if lexical is not None else concat_output  # add lexical features
         concat_output = torch.cat((concat_output, pca), 1) if pca is not None else concat_output  # add pca features
    
