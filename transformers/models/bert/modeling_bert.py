@@ -1749,8 +1749,7 @@ class BertForSequenceClassification(ModelWithHeadsAdaptersMixin, BertPreTrainedM
             output_hidden_states=None,
             return_dict=None,
             adapter_names=None,
-            lexical=None,  # added by Myra Z.
-            pca=None,  # added by Myra Z.
+            multiinput=None,  # added by Myra Z.
     ):
         r"""
         labels (:obj:`torch.LongTensor` of shape :obj:`(batch_size,)`, `optional`):
@@ -1779,8 +1778,8 @@ class BertForSequenceClassification(ModelWithHeadsAdaptersMixin, BertPreTrainedM
                 
         # Added by Myra Z. for multi input        
         concat_output = pooled_output
-        concat_output = torch.cat((concat_output, lexical), 1) if lexical is not None else concat_output  # add lexical features
-        concat_output = torch.cat((concat_output, pca), 1) if pca is not None else concat_output  # add pca features
+        concat_output = torch.cat((concat_output, multiinput), 1) if multiinput is not None else concat_output  # add lexical features
+        #concat_output = torch.cat((concat_output, pca), 1) if pca is not None else concat_output  # add pca features
    
         logits = self.classifier(concat_output)
 
