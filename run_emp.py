@@ -341,14 +341,14 @@ def main():
     logger.info(f"trainable_params: {trainable_params}, total_params: {total_params}, percentage:  {(trainable_params/total_params)*100}")
 
     log_wandb({'trainable_params':trainable_params, 'trainable_params_percentage':trainable_params/total_params*100}, use_wandb)
-    if False:
+    if True:
             names = [n for n, p in model.named_parameters()]
             paramsis = [param for param in model.parameters()]
             for n, p in zip(names, paramsis):
                 print(f"{n}: {p.requires_grad}")
             print(model)
 
-
+    sys.exit(-1)
     # TODO: I dont think we need this here
     #if data_args.task_name is not None:
     #    sentence1_key, sentence2_key = task_to_keys[data_args.task_name]
