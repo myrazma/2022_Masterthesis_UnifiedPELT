@@ -380,7 +380,6 @@ def main():
                 print(f"{n}: {p.requires_grad}")
             print(model)
 
-    sys.exit(-1)
     # TODO: I dont think we need this here
     #if data_args.task_name is not None:
     #    sentence1_key, sentence2_key = task_to_keys[data_args.task_name]
