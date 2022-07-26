@@ -48,6 +48,8 @@ from transformers import (
     default_data_collator,
     set_seed,
 )
+
+from transformers.adapters.composition import Stack
 from transformers.trainer_utils import get_last_checkpoint, is_main_process
 from transformers.utils import check_min_version
 
@@ -278,6 +280,7 @@ def main():
     # we could provide a path to the adapter that we want to load
     use_emotion_adapter = True
     train_all_gates_adapters = True
+    emotion_stack = True
     
     # Setup adapters
     if adapter_args.train_adapter:
@@ -332,9 +335,12 @@ def main():
         active_adapters_list = [task_name]
         if lang_adapter_name: active_adapters_list.append(lang_adapter_name)
         if emotion_adapter_name: active_adapters_list.append(emotion_adapter_name)
-        model.set_active_adapters(active_adapters_list)
-        print('\n\n active_adapters_list:', active_adapters_list)
-        print()
+        
+        if emotion_stack and emotion_adapter_name and task_name:
+            print(' ----- using Stack -----')
+            model.active_adapters = Stack(emotion_adapter_name, task_name)
+        else:
+            model.set_active_adapters(active_adapters_list)
 
         if train_all_gates_adapters:  # all gates of the adapters will be trainable, by default only the trainable adapters will have trainable gates
             names = [n for n, p in model.named_parameters()]
@@ -342,12 +348,7 @@ def main():
             for n, p in zip(names, paramsis):
                 if 'adapters' in n and 'gate' in n:
                     p.requires_grad = True
-                    print(f"{n}: {p.requires_grad}")
-        # was like this before:
-        #if lang_adapter_name:
-        #    model.set_active_adapters([lang_adapter_name, task_name])
-        #else:
-        #    model.set_active_adapters([task_name])
+
     else:
         except_para_l = []
         if config.tune_bias:
