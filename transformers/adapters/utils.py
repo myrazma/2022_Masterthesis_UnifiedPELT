@@ -251,7 +251,7 @@ def find_in_index(
     # find all entries for this task and subtask
     entries = list(_dict_extract(adapter_index, task, subtask))
     if not entries:
-        print('\n No entries found for this adapter Returning None \n. task: {task}, subtask: {subtask}, org: {org} \n')# TODO DELETE HIS printing: Added by Myra Z.
+        print(f'\n No entries found for this adapter Returning None \n. task: {task}, subtask: {subtask}, org: {org} \n')# TODO DELETE HIS printing: Added by Myra Z.
         # we found no matching entry
         return None
     elif len(entries) == 1:
