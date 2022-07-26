@@ -249,6 +249,10 @@ def find_in_index(
     # split into <task>/<subtask>@<org>
     task, subtask, org = _split_identifier(identifier)
     # find all entries for this task and subtask
+    for k, v in adapter_index.items():  # TODO delete
+        print('k', k)  # TODO delete
+        print('v', v)  # TODO delete
+        print()  # TODO delete
     entries = list(_dict_extract(adapter_index, task, subtask))
     if not entries:
         print(f'\n No entries found for this adapter Returning None \n. task: {task}, subtask: {subtask}, org: {org} \n')# TODO DELETE HIS printing: Added by Myra Z.
