@@ -272,6 +272,12 @@ def main():
         use_auth_token=True if model_args.use_auth_token else None,
     )
 
+    # Added by Myra Z.
+    # TODO: If this is working we should do this as a model parameter
+    # we could also think about in stead of providing a boolean, 
+    # we could provide a path to the adapter that we want to load
+    use_emotion_adapter = True
+    
     # Setup adapters
     if adapter_args.train_adapter:
         task_name = data_args.task_name
@@ -294,6 +300,11 @@ def main():
             # otherwise, add a fresh adapter
             else:
                 model.add_adapter(task_name, config=adapter_config)
+
+        if use_emotion_adapter:  # Added by Myra Z.
+            # TODO: Make this adapter based on the model inputs
+            emotion_adapter_name = model.load_adapter('AdapterHub/bert-base-uncased-pf-emotion', source="hf")
+        
         # optionally load a pre-trained language adapter
         if adapter_args.load_lang_adapter:
             # resolve the language adapter config
@@ -313,10 +324,19 @@ def main():
         # Freeze all model weights except of those of this adapter
         model.train_adapter([task_name])
         # Set the adapters to be used in every forward pass
-        if lang_adapter_name:
-            model.set_active_adapters([lang_adapter_name, task_name])
-        else:
-            model.set_active_adapters([task_name])
+        # added by Myra Z.:
+        # Added more adapter possibilities here
+        active_adapters_list = [task_name]
+        if lang_adapter_name: active_adapters_list.append(lang_adapter_name)
+        if emotion_adapter_name: active_adapters_list.append(emotion_adapter_name)
+        model.set_active_adapters(active_adapters_list)
+        print('\n\n active_adapters_list:', active_adapters_list)
+        print()
+        # was like this before:
+        #if lang_adapter_name:
+        #    model.set_active_adapters([lang_adapter_name, task_name])
+        #else:
+        #    model.set_active_adapters([task_name])
     else:
         except_para_l = []
         if config.tune_bias:
