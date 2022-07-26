@@ -239,3 +239,10 @@ class ModelArguments:
         default=False,
         metadata={"help": "add a shared gate"},
     )
+    stacking_adapter: Optional[str] = field(
+        default=None,
+        metadata={"help": "The source of an adapter to stack right before the task adapter"},
+    )
+    use_emotion_adapter = True
+    train_all_gates_adapters = True
+    emotion_stack = True

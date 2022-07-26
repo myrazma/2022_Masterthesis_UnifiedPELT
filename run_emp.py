@@ -336,9 +336,9 @@ def main():
         if lang_adapter_name: active_adapters_list.append(lang_adapter_name)
         if emotion_adapter_name: active_adapters_list.append(emotion_adapter_name)
         
-        if emotion_stack and emotion_adapter_name and task_name:
+        if emotion_stack and emotion_adapter_name and task_name:  # if use emotion_stack is true and we have two adapters
             print(' ----- using Stack -----')
-            model.active_adapters = Stack(emotion_adapter_name, task_name)
+            model.active_adapters = Stack(task_name, emotion_adapter_name)
         else:
             model.set_active_adapters(active_adapters_list)
 
