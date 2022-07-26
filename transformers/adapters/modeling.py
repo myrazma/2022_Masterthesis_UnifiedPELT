@@ -112,7 +112,8 @@ class Adapter(nn.Module):
                 self.gate.apply(self.init_bert_weights)
 
         if train_gate and add_gate:  # if gate is added and gate is set to train, then set the gates to trainable
-            self.gate.requires_grad = True
+            self.gate.weight.requires_grad = True
+            self.gate.bias.requires_grad = True
 
     def forward(self, x, residual_input, return_gate_output=False, central_gate=None):  # , residual_input=None):
         # residual_input is after FFN and before layer_norm.
