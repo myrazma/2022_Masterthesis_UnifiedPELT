@@ -304,7 +304,7 @@ def main():
         if use_emotion_adapter:  # Added by Myra Z.
             # TODO: Make this adapter based on the model inputs
             emotion_adapter_name = model.load_adapter('AdapterHub/bert-base-uncased-pf-emotion', source="hf")
-        
+
         # optionally load a pre-trained language adapter
         if adapter_args.load_lang_adapter:
             # resolve the language adapter config
