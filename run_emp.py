@@ -277,6 +277,7 @@ def main():
     # we could also think about in stead of providing a boolean, 
     # we could provide a path to the adapter that we want to load
     use_emotion_adapter = True
+    train_all_gates_adapters = True
     
     # Setup adapters
     if adapter_args.train_adapter:
@@ -334,6 +335,14 @@ def main():
         model.set_active_adapters(active_adapters_list)
         print('\n\n active_adapters_list:', active_adapters_list)
         print()
+
+        if train_all_gates_adapters:  # all gates of the adapters will be trainable, by default only the trainable adapters will have trainable gates
+            names = [n for n, p in model.named_parameters()]
+            paramsis = [param for param in model.parameters()]
+            for n, p in zip(names, paramsis):
+                if 'adapters' in n and 'gate' in n:
+                    p.requires_grad = True
+                    print(f"{n}: {p.requires_grad}")
         # was like this before:
         #if lang_adapter_name:
         #    model.set_active_adapters([lang_adapter_name, task_name])
