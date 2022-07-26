@@ -33,6 +33,8 @@ ADAPTER_IDENTIFIER_PATTERN = r"[0-9a-zA-Z\-_\/@]{2,}"
 ADAPTER_HUB_URL = "https://raw.githubusercontent.com/Adapter-Hub/Hub/master/dist/v2/"
 ADAPTER_HUB_INDEX_FILE = ADAPTER_HUB_URL + "index/{}.json"
 ADAPTER_HUB_CONFIG_FILE = ADAPTER_HUB_URL + "architectures.json"
+ADAPTER_HUB_ALL_FILE = ADAPTER_HUB_URL + "all.json"  # Added from new version of AdapterHub
+ADAPTER_HUB_ADAPTER_ENTRY_JSON = ADAPTER_HUB_URL + "adapters/{}/{}.json"  # Added from new version of AdapterHub
 
 # the download cache
 ADAPTER_CACHE = join(torch_cache_home, "adapters")
@@ -249,13 +251,13 @@ def find_in_index(
     # split into <task>/<subtask>@<org>
     task, subtask, org = _split_identifier(identifier)
     # find all entries for this task and subtask
+    print('\n Available keys:')
     for k, v in adapter_index.items():  # TODO delete
         print('k', k)  # TODO delete
         print('v', v)  # TODO delete
         print()  # TODO delete
     entries = list(_dict_extract(adapter_index, task, subtask))
     if not entries:
-        print(f'\n No entries found for this adapter Returning None \n. task: {task}, subtask: {subtask}, org: {org} \n')# TODO DELETE HIS printing: Added by Myra Z.
         # we found no matching entry
         return None
     elif len(entries) == 1:

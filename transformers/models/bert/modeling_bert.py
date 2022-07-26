@@ -1128,12 +1128,15 @@ class BertModel(BertModelAdaptersMixin, BertPreTrainedModel):
             in_train_loop (bool, optional): _description_. Defaults to True.
         """
         # Added by Myra Z. 
+        # TODO: speichern von adaptername abhängig machen wär dann wohl auch hier
         current_gate = pd.DataFrame()
         gate_output_d, lora_gate_query, lora_gate_value, prefix_gate = None, None, None, None
         for idx, layer in enumerate(self.encoder.layer):
             # check the variables for gating in each bert encoder layer
             if layer.output.adapters: # if not empty adapters ModuleDict
                 try:
+                    # TODO: Do for multiple adapters in one BERT layer
+                    print([key for key in layer.output.gate_output_d.keys() if str(idx) in key])
                     layer_adapter_name = [key for key in layer.output.gate_output_d.keys() if str(idx) in key][0]  # works for one adapter per layer
                     gate_output_d = [gate for batch in layer.output.gate_output_d[layer_adapter_name] for gate in list(batch)]
                 except:
