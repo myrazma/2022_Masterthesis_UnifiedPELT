@@ -171,7 +171,8 @@ class AdapterLayerBaseMixin(ABC):
             # Case 4: We have a single adapter which is part of this module -> forward pass
             elif adapter_stack_layer in self.adapters:
                 print('Case 4: single adapter')
-                print(self.adapters)
+                print('self.adapters', self.adapters)
+                print('adapter_stack_layer', adapter_stack_layer)
                 adapter_layer = self.adapters[adapter_stack_layer]
                 adapter_config = self.config.adapters.get(adapter_stack_layer)
                 hidden_states, _, residual = self.get_adapter_preparams(adapter_config, hidden_states, input_tensor)
