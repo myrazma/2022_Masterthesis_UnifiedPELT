@@ -1133,10 +1133,13 @@ class BertModel(BertModelAdaptersMixin, BertPreTrainedModel):
         gate_output_d, lora_gate_query, lora_gate_value, prefix_gate = None, None, None, None
         for idx, layer in enumerate(self.encoder.layer):
             # check the variables for gating in each bert encoder layer
+            # TODO
             if layer.output.adapters: # if not empty adapters ModuleDict
                 try:
                     # TODO: Do for multiple adapters in one BERT layer
                     print([key for key in layer.output.gate_output_d.keys() if str(idx) in key])
+                    # for adapter_name in adapters: do something here  # TODO
+                    # output was ['adapter-0', 'adapter-10']
                     layer_adapter_name = [key for key in layer.output.gate_output_d.keys() if str(idx) in key][0]  # works for one adapter per layer
                     gate_output_d = [gate for batch in layer.output.gate_output_d[layer_adapter_name] for gate in list(batch)]
                 except:
@@ -1157,7 +1160,7 @@ class BertModel(BertModelAdaptersMixin, BertPreTrainedModel):
                 gate_dict = pd.DataFrame()
             else:
                 gate_dict = pd.DataFrame({'gate_prefix': prefix_gate, 'gate_lora_value': lora_gate_value, 'gate_lora_query': lora_gate_query, 'gate_adapters': gate_output_d, 'encoder_layer': idx, 'epoch': epoch, 'split': split, 'is_in_train':is_in_train})
-            
+            print()
             current_gate = pd.concat([current_gate, gate_dict], ignore_index=True)
             # clear the varaibles after they are stored
         self.gates = pd.concat([self.gates, current_gate], ignore_index=True)
