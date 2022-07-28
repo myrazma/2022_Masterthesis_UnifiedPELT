@@ -258,7 +258,11 @@ def gating_metrics(split_prefix, gating_df):
     if len(splits) > 1:
         print(f'\nMyWarning: Encountered data from multiple splits while saving gating to metrics: {splits}')
     #gating_df.dropna(axis=1, inplace=True)  # drop na and only report available columns
-    grouped_mean = gating_df.groupby(['encoder_layer']).agg({'gate_prefix':'mean', 'gate_lora_value':'mean', 'gate_lora_query':'mean', 'gate_adapters':'mean'})  
+    gating_cols = [col for col in gating_df.columns if 'gate' in col]
+    print(gating_cols)
+    grouped_mean = gating_df.groupby(['encoder_layer']).agg({col: 'mean' for col in gating_cols})
+        #'gate_prefix':'mean', 'gate_lora_value':'mean', 'gate_lora_query':'mean', 'gate_adapters':'mean'})  
+    #grouped_mean = gating_df.groupby(['encoder_layer']).agg({'gate_prefix':'mean', 'gate_lora_value':'mean', 'gate_lora_query':'mean', 'gate_adapters':'mean'})  
     #grouped_std = gating_df.groupby(['encoder_layer']).agg({'gate_prefix':'std', 'gate_lora_value':'std', 'gate_lora_query':'std', 'gate_adapters':'std'})  
     gating_metrics = {}
     for col in grouped_mean.columns:
