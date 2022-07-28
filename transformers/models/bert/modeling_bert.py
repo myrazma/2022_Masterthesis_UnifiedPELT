@@ -1101,6 +1101,7 @@ class BertModel(BertModelAdaptersMixin, BertPreTrainedModel):
     
     def reset_gate_variables(self):
         # Added by Myra Z.
+        # TODO as well for multiple adapters (or at least check)
         for idx, layer in enumerate(self.encoder.layer):
             # check the variables for gating in each bert encoder layer
             if layer.output.adapters: # if not empty adapters ModuleDict
@@ -1160,11 +1161,13 @@ class BertModel(BertModelAdaptersMixin, BertPreTrainedModel):
                 gate_dict = pd.DataFrame()
             else:
                 gate_dict = pd.DataFrame({'gate_prefix': prefix_gate, 'gate_lora_value': lora_gate_value, 'gate_lora_query': lora_gate_query, 'gate_adapters': gate_output_d, 'encoder_layer': idx, 'epoch': epoch, 'split': split, 'is_in_train':is_in_train})
-            print()
+            
             current_gate = pd.concat([current_gate, gate_dict], ignore_index=True)
             # clear the varaibles after they are stored
         self.gates = pd.concat([self.gates, current_gate], ignore_index=True)
+        print(self.gates)
         self.reset_gate_variables()
+        
         return current_gate
 
 
