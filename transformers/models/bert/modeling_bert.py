@@ -1151,15 +1151,12 @@ class BertModel(BertModelAdaptersMixin, BertPreTrainedModel):
                     # TODO: idx 0 also gets idx 10
                     # what output do i actually get?
                     for adapter_name in layer.output.gate_output_d.keys():
+                        print('Layer:', idx)
                         print(adapter_name)
                         #layer_adapter_name = [key for key in layer.output.gate_output_d.keys() if str(idx) in key][0]  # works for one adapter per layer
                         gate_output_d = [gate for batch in layer.output.gate_output_d[adapter_name] for gate in list(batch)]
                         adapter_name = 'gate_' + clean(adapter_name) # TODO, should be task_name (distress) or stacking adapter_name
                         print('layer_adapter_name:', adapter_name)
-                        try:
-                            print('gate_output_d', gate_output_d.shape)
-                        except:
-                            pass
                         gate_dict.update({adapter_name: gate_output_d})
                     
                 except:
@@ -1183,7 +1180,7 @@ class BertModel(BertModelAdaptersMixin, BertPreTrainedModel):
             #if prefix_gate is None and lora_gate_value is None and lora_gate_query is None and gate_output_d is None:
             #    gate_dict = pd.DataFrame()
             #else:
-            print('gate_dict:', gate_dict)
+            print('gate_dict:', gate_dict.keys)
             if gate_dict:  # when gate dict is not empty, then add ecoder layer, epoch etc
                 gate_dict.update({'encoder_layer': idx, 'epoch': epoch, 'split': split, 'is_in_train':is_in_train})
             new_gate = pd.DataFrame(gate_dict)
