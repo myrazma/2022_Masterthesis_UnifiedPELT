@@ -1131,6 +1131,14 @@ class BertModel(BertModelAdaptersMixin, BertPreTrainedModel):
         # Added by Myra Z. 
         # TODO: speichern von adaptername abhängig machen wär dann wohl auch hier
         current_gate = pd.DataFrame()
+        def clean(s):
+            clean_s = s[:]
+            try:
+                while not clean_s[-1].isalpha():
+                    clean_s = clean_s[:-1]
+            except:
+                return s
+            return clean_s
         gate_output_d, lora_gate_query, lora_gate_value, prefix_gate = None, None, None, None
         for idx, layer in enumerate(self.encoder.layer):
             gate_dict = {}
@@ -1146,7 +1154,7 @@ class BertModel(BertModelAdaptersMixin, BertPreTrainedModel):
                         print(adapter_name)
                         #layer_adapter_name = [key for key in layer.output.gate_output_d.keys() if str(idx) in key][0]  # works for one adapter per layer
                         gate_output_d = [gate for batch in layer.output.gate_output_d[adapter_name] for gate in list(batch)]
-                        adapter_name = 'gate_' + adapter_name # TODO, should be task_name (distress) or stacking adapter_name
+                        adapter_name = 'gate_' + clean(adapter_name) # TODO, should be task_name (distress) or stacking adapter_name
                         print('layer_adapter_name:', adapter_name)
                         try:
                             print('gate_output_d', gate_output_d.shape)
