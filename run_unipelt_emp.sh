@@ -107,6 +107,11 @@ if [ $pelt_method == "adapter" ]; then
     tune_bias=False
 fi
 
+# for stacking and adding of another adapter
+stacking_adapter="sentiment/imdb@ukp"
+use_stacking_adapter=True
+train_all_gates_adapters=True
+
 # call the python file with stated parameters
 python run_emp.py \
     --data_dir data/ \
@@ -131,3 +136,6 @@ python run_emp.py \
     --add_lora ${add_lora} \
     --tune_bias ${tune_bias} \
     --learning_rate ${learning_rate} \
+    --stacking_adapter $stacking_adapter \
+    --use_stacking_adapter $use_stacking_adapter \
+    --train_all_gates_adapters $train_all_gates_adapters

@@ -1148,7 +1148,6 @@ class BertModel(BertModelAdaptersMixin, BertPreTrainedModel):
                         # for each adapter
                         # TODO get the name better
                         pass
-
                     layer_adapter_name = [key for key in layer.output.gate_output_d.keys() if str(idx) in key][0]  # works for one adapter per layer
                     gate_output_d = [gate for batch in layer.output.gate_output_d[layer_adapter_name] for gate in list(batch)]
                     adapter_name = 'gate_adapters' + layer_adapter_name # TODO, should be task_name (distress) or stacking adapter_name
@@ -1183,8 +1182,8 @@ class BertModel(BertModelAdaptersMixin, BertPreTrainedModel):
             # TODO: Check if everything worked here
             # clear the varaibles after they are stored
         self.gates = pd.concat([self.gates, current_gate], ignore_index=True)
-        self.reset_gate_variables()
         print(self.gates)
+        self.reset_gate_variables()
         return current_gate
 
 

@@ -274,13 +274,15 @@ def main():
         use_auth_token=True if model_args.use_auth_token else None,
     )
 
+
     # Added by Myra Z.
     # TODO: If this is working we should do this as a model parameter
     # we could also think about in stead of providing a boolean, 
     # we could provide a path to the adapter that we want to load
-    use_emotion_adapter = True
-    train_all_gates_adapters = True
-    emotion_stack = True
+    #model_args.stacking_adapter  # the pathe to the stacking adapter
+    #model_args.use_stacking_adapter  # If we should use the stacking adapter
+    #model_args.train_all_gates_adapters  # If True, then all gate parameters fo the adapter will be set to trainable
+    
     
     # Setup adapters
     if adapter_args.train_adapter:
@@ -305,11 +307,16 @@ def main():
             else:
                 model.add_adapter(task_name, config=adapter_config)
 
-        if use_emotion_adapter:  # Added by Myra Z.
+        if model_args.use_stacking_adapter:  # Added by Myra Z.
             # TODO: Make this adapter based on the model inputs
-            config = AdapterConfig.load("pfeiffer")
-            emotion_adapter_name = model.load_adapter("sentiment/imdb@ukp", config=config)
-            #emotion_adapter_name = model.load_adapter('AdapterHub/bert-base-uncased-pf-emotion', source="hf")
+            # TODO: Might need to use the code from above
+            try:
+                emotion_adapter_name = model.load_adapter(model_args.stacking_adapter, source="hf")
+                #config = AdapterConfig.load("pfeiffer")
+                #emotion_adapter_name = model.load_adapter("sentiment/imdb@ukp", config=config)
+            except Exception as e:
+                print(f'\n Stacking adapter cannot be used adn is not being used. Exception: \n {e}')
+                emotion_adapter_name = None
 
         # optionally load a pre-trained language adapter
         if adapter_args.load_lang_adapter:
@@ -336,13 +343,13 @@ def main():
         if lang_adapter_name: active_adapters_list.append(lang_adapter_name)
         if emotion_adapter_name: active_adapters_list.append(emotion_adapter_name)
         
-        if emotion_stack and emotion_adapter_name and task_name:  # if use emotion_stack is true and we have two adapters
+        if model_args.use_stacking_adapter and emotion_adapter_name and task_name:  # if use emotion_stack is true and we have two adapters
             print(' ----- using Stack -----')
             model.active_adapters = Stack(emotion_adapter_name, task_name)
-        else:
+        else:  # Otherwise just set them to active
             model.set_active_adapters(active_adapters_list)
 
-        if train_all_gates_adapters:  # all gates of the adapters will be trainable, by default only the trainable adapters will have trainable gates
+        if model_args.train_all_gates_adapters:  # all gates of the adapters will be trainable, by default only the trainable adapters will have trainable gates
             names = [n for n, p in model.named_parameters()]
             paramsis = [param for param in model.parameters()]
             for n, p in zip(names, paramsis):
@@ -528,7 +535,6 @@ def main():
         trainer.save_state()
         log_wandb(metrics, use_wandb)  # Added by Myra Z.: log wandb is use_wandb == True
 
-    print
 
     #log_plot_gradients(model, tensorboard_writer, use_wandb)
     log_plot_gates(model, tensorboard_writer, use_wandb)
