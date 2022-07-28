@@ -136,6 +136,6 @@ python run_emp.py \
     --add_lora ${add_lora} \
     --tune_bias ${tune_bias} \
     --learning_rate ${learning_rate} \
-    --stacking_adapter $stacking_adapter \
-    --use_stacking_adapter $use_stacking_adapter \
-    --train_all_gates_adapters $train_all_gates_adapters
+    --stacking_adapter ${stacking_adapter} \
+    --use_stacking_adapter ${use_stacking_adapter} \
+    --train_all_gates_adapters ${train_all_gates_adapters}

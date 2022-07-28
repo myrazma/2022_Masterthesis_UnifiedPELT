@@ -243,6 +243,15 @@ class ModelArguments:
         default=None,
         metadata={"help": "The source of an adapter to stack right before the task adapter"},
     )
-    use_emotion_adapter = True
-    train_all_gates_adapters = True
-    emotion_stack = True
+    stacking_adapter: Optional[str] = field(
+        default=None,
+        metadata={"help": "The source of an adapter to stack right before the task adapter"},
+    )
+    use_stacking_adapter: bool = field(
+        default=False,
+        metadata={"help": "The source of an adapter to stack right before the task adapter"},
+    )
+    train_all_gates_adapters: bool = field(
+        default=True,
+        metadata={"help": "Train the gate for all adapters, even if they are not set to active"},
+    )
