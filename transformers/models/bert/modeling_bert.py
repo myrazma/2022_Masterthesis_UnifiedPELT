@@ -1133,41 +1133,58 @@ class BertModel(BertModelAdaptersMixin, BertPreTrainedModel):
         current_gate = pd.DataFrame()
         gate_output_d, lora_gate_query, lora_gate_value, prefix_gate = None, None, None, None
         for idx, layer in enumerate(self.encoder.layer):
+            gate_dict = pd.DataFrame()
+            #'gate_prefix': prefix_gate, 'gate_lora_value': lora_gate_value, 'gate_lora_query': lora_gate_query
             # check the variables for gating in each bert encoder layer
-            # TODO
             if layer.output.adapters: # if not empty adapters ModuleDict
                 try:
                     # TODO: Do for multiple adapters in one BERT layer
                     print([key for key in layer.output.gate_output_d.keys() if str(idx) in key])
-                    # for adapter_name in adapters: do something here  # TODO
-                    # output was ['adapter-0', 'adapter-10']
+                    # TODO: idx 0 also gets idx 10
+                    # what output do i actually get?
+                    for key in layer.output.gate_output_d.keys():
+                        print(key)
+                        # for each layer
+                        # for each adapter
+                        # TODO get the name better
+                        pass
+
                     layer_adapter_name = [key for key in layer.output.gate_output_d.keys() if str(idx) in key][0]  # works for one adapter per layer
                     gate_output_d = [gate for batch in layer.output.gate_output_d[layer_adapter_name] for gate in list(batch)]
+                    adapter_name = 'gate_adapters' + layer_adapter_name # TODO, should be task_name (distress) or stacking adapter_name
+                    print('layer_adapter_name:', layer_adapter_name)
+                    gate_dict.update({adapter_name: gate_output_d})
                 except:
                     print('len(layer.output.gate_output_d) did not work')
 
             if isinstance(layer.attention.self.query, LoRA_Linear):
                 lora_gate_query = [gate for batch in layer.attention.self.query.lora_gate_output_l for gate in list(batch)]
+                gate_dict.update({'gate_lora_query': lora_gate_query})
 
             if isinstance(layer.attention.self.value, LoRA_Linear):
                 lora_gate_value = [gate for batch in layer.attention.self.value.lora_gate_output_l for gate in list(batch)]
+                gate_dict.update({'gate_lora_value': lora_gate_value})
 
             if isinstance(layer.attention.self, BertSelfAttention):  # TODO: This is the issue
                 prefix_gate = [gate for batch in layer.attention.self.prefix_gate_output_l for gate in list(batch)]
                 if len(prefix_gate) < 1:  # then prefix is not used
                     prefix_gate = None
+                else:
+                    gate_dict.update({'gate_prefix': lora_gate_value})
             
-            if prefix_gate is None and lora_gate_value is None and lora_gate_query is None and gate_output_d is None:
-                gate_dict = pd.DataFrame()
-            else:
-                gate_dict = pd.DataFrame({'gate_prefix': prefix_gate, 'gate_lora_value': lora_gate_value, 'gate_lora_query': lora_gate_query, 'gate_adapters': gate_output_d, 'encoder_layer': idx, 'epoch': epoch, 'split': split, 'is_in_train':is_in_train})
-            
-            current_gate = pd.concat([current_gate, gate_dict], ignore_index=True)
+            #if prefix_gate is None and lora_gate_value is None and lora_gate_query is None and gate_output_d is None:
+            #    gate_dict = pd.DataFrame()
+            #else:
+                
+            if not gate_dict.empty:  # when gate dict is not empty, then add ecoder layer, epoch etc
+                gate_dict.update({'encoder_layer': idx, 'epoch': epoch, 'split': split, 'is_in_train':is_in_train})
+            new_gate = pd.DataFrame(gate_dict)
+            current_gate = pd.concat([current_gate, new_gate], ignore_index=True)
+            # TODO: Check if everything worked here
             # clear the varaibles after they are stored
         self.gates = pd.concat([self.gates, current_gate], ignore_index=True)
-        print(self.gates)
         self.reset_gate_variables()
-        
+        print(self.gates)
         return current_gate
 
 
