@@ -1148,7 +1148,10 @@ class BertModel(BertModelAdaptersMixin, BertPreTrainedModel):
                         gate_output_d = [gate for batch in layer.output.gate_output_d[adapter_name] for gate in list(batch)]
                         adapter_name = 'gate_' + adapter_name # TODO, should be task_name (distress) or stacking adapter_name
                         print('layer_adapter_name:', adapter_name)
-                        print('gate_output_d', gate_output_d.size())
+                        try:
+                            print('gate_output_d', gate_output_d.shape)
+                        except:
+                            pass
                         gate_dict.update({adapter_name: gate_output_d})
                     
                 except:
