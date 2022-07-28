@@ -1146,17 +1146,14 @@ class BertModel(BertModelAdaptersMixin, BertPreTrainedModel):
             # check the variables for gating in each bert encoder layer
             if layer.output.adapters: # if not empty adapters ModuleDict
                 try:
-                    # TODO: Do for multiple adapters in one BERT layer
-                    print([key for key in layer.output.gate_output_d.keys() if str(idx) in key])
-                    # TODO: idx 0 also gets idx 10
                     # what output do i actually get?
                     for adapter_name in layer.output.gate_output_d.keys():
-                        print('Layer:', idx)
-                        print(adapter_name)
+                        #print('Layer:', idx)
+                        #print(adapter_name)
                         #layer_adapter_name = [key for key in layer.output.gate_output_d.keys() if str(idx) in key][0]  # works for one adapter per layer
                         gate_output_d = [gate for batch in layer.output.gate_output_d[adapter_name] for gate in list(batch)]
                         adapter_name = 'gate_' + clean(adapter_name) # TODO, should be task_name (distress) or stacking adapter_name
-                        print('layer_adapter_name:', adapter_name)
+                        #print('layer_adapter_name:', adapter_name)
                         gate_dict.update({adapter_name: gate_output_d})
                     
                 except:
