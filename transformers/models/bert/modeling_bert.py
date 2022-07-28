@@ -1133,7 +1133,7 @@ class BertModel(BertModelAdaptersMixin, BertPreTrainedModel):
         current_gate = pd.DataFrame()
         gate_output_d, lora_gate_query, lora_gate_value, prefix_gate = None, None, None, None
         for idx, layer in enumerate(self.encoder.layer):
-            gate_dict = pd.DataFrame()
+            gate_dict = {}
             #'gate_prefix': prefix_gate, 'gate_lora_value': lora_gate_value, 'gate_lora_query': lora_gate_query
             # check the variables for gating in each bert encoder layer
             if layer.output.adapters: # if not empty adapters ModuleDict
@@ -1142,18 +1142,15 @@ class BertModel(BertModelAdaptersMixin, BertPreTrainedModel):
                     print([key for key in layer.output.gate_output_d.keys() if str(idx) in key])
                     # TODO: idx 0 also gets idx 10
                     # what output do i actually get?
-                    for key in layer.output.gate_output_d.keys():
-                        print(key)
-                        # for each layer
-                        # for each adapter
-                        # TODO get the name better
-                        pass
-                    layer_adapter_name = [key for key in layer.output.gate_output_d.keys() if str(idx) in key][0]  # works for one adapter per layer
-                    gate_output_d = [gate for batch in layer.output.gate_output_d[layer_adapter_name] for gate in list(batch)]
-                    adapter_name = 'gate_adapters' + layer_adapter_name # TODO, should be task_name (distress) or stacking adapter_name
-                    print('layer_adapter_name:', layer_adapter_name)
-                    print('gate_output_d', gate_output_d)
-                    gate_dict.update({adapter_name: gate_output_d})
+                    for adapter_name in layer.output.gate_output_d.keys():
+                        print(adapter_name)
+                        #layer_adapter_name = [key for key in layer.output.gate_output_d.keys() if str(idx) in key][0]  # works for one adapter per layer
+                        gate_output_d = [gate for batch in layer.output.gate_output_d[adapter_name] for gate in list(batch)]
+                        adapter_name = 'gate_' + adapter_name # TODO, should be task_name (distress) or stacking adapter_name
+                        print('layer_adapter_name:', adapter_name)
+                        print('gate_output_d', gate_output_d.size())
+                        gate_dict.update({adapter_name: gate_output_d})
+                    
                 except:
                     print('len(layer.output.gate_output_d) did not work')
 
@@ -1183,7 +1180,6 @@ class BertModel(BertModelAdaptersMixin, BertPreTrainedModel):
             # TODO: Check if everything worked here
             # clear the varaibles after they are stored
         self.gates = pd.concat([self.gates, current_gate], ignore_index=True)
-        print(self.gates)
         self.reset_gate_variables()
         return current_gate
 
