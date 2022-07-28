@@ -1152,6 +1152,7 @@ class BertModel(BertModelAdaptersMixin, BertPreTrainedModel):
                     gate_output_d = [gate for batch in layer.output.gate_output_d[layer_adapter_name] for gate in list(batch)]
                     adapter_name = 'gate_adapters' + layer_adapter_name # TODO, should be task_name (distress) or stacking adapter_name
                     print('layer_adapter_name:', layer_adapter_name)
+                    print('gate_output_d', gate_output_d)
                     gate_dict.update({adapter_name: gate_output_d})
                 except:
                     print('len(layer.output.gate_output_d) did not work')
@@ -1174,7 +1175,7 @@ class BertModel(BertModelAdaptersMixin, BertPreTrainedModel):
             #if prefix_gate is None and lora_gate_value is None and lora_gate_query is None and gate_output_d is None:
             #    gate_dict = pd.DataFrame()
             #else:
-                
+            print('gate_dict:', gate_dict)
             if not gate_dict.empty:  # when gate dict is not empty, then add ecoder layer, epoch etc
                 gate_dict.update({'encoder_layer': idx, 'epoch': epoch, 'split': split, 'is_in_train':is_in_train})
             new_gate = pd.DataFrame(gate_dict)
