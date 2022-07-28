@@ -171,6 +171,7 @@ class AdapterLayerBaseMixin(ABC):
             # Case 4: We have a single adapter which is part of this module -> forward pass
             elif adapter_stack_layer in self.adapters:
                 print('Case 4: single adapter')
+                print(self.adapters)
                 adapter_layer = self.adapters[adapter_stack_layer]
                 adapter_config = self.config.adapters.get(adapter_stack_layer)
                 hidden_states, _, residual = self.get_adapter_preparams(adapter_config, hidden_states, input_tensor)
@@ -187,7 +188,9 @@ class AdapterLayerBaseMixin(ABC):
                 if i == len(adapter_setup) - 1:
                     return hidden_states, up, input_tensor
             # Case X: No adapter which is part of this module -> ignore
-
+            # TODO:DELTE
+            if isinstance(adapter_stack_layer, Stack): print('Case 5: Stack')
+            # finish deleting
         # If we got here, we either had another nested composition block
         # or no adapter was found. In both cases, we don't need to set the second return value for fusion
         return hidden_states, None, input_tensor
