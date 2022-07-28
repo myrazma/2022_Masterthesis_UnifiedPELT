@@ -156,23 +156,20 @@ class AdapterLayerBaseMixin(ABC):
                 )
             # Case 1: We have a nested fusion layer -> call fusion method
             if isinstance(adapter_stack_layer, Fuse):
-                print('Case 1: Fuse')
                 hidden_states = self.adapter_fusion(adapter_stack_layer, hidden_states, input_tensor, lvl=lvl + 1)
             # Case 2: We have a nested split layer -> call split method
             elif isinstance(adapter_stack_layer, Split):
-                print('Case 2: Split')
                 hidden_states = self.adapter_split(adapter_stack_layer, hidden_states, input_tensor, lvl=lvl + 1)
             # Case 3: We have a nested parallel layer -> call parallel method
             elif isinstance(adapter_stack_layer, Parallel):
-                print('Case 3: Parallel')
                 hidden_states, input_tensor = self.adapter_parallel(
                     adapter_stack_layer, hidden_states, input_tensor, lvl=lvl + 1
                 )
             # Case 4: We have a single adapter which is part of this module -> forward pass
             elif adapter_stack_layer in self.adapters:
-                print('Case 4: single adapter')
-                print('self.adapters', self.adapters)
-                print('adapter_stack_layer', adapter_stack_layer)
+                #print('Case 4: single adapter')
+                #print('self.adapters', self.adapters)
+                #print('adapter_stack_layer', adapter_stack_layer)
                 adapter_layer = self.adapters[adapter_stack_layer]
                 adapter_config = self.config.adapters.get(adapter_stack_layer)
                 hidden_states, _, residual = self.get_adapter_preparams(adapter_config, hidden_states, input_tensor)
@@ -180,8 +177,8 @@ class AdapterLayerBaseMixin(ABC):
                                        return_gate_output=self.config.add_adapter_gate)
                 if len(output) == 4:
                     hidden_states, _, up, gate_output = output
-                    print('This gate output:\n', gate_output.detach().squeeze().cpu().numpy())
-                    self.gate_output_d[f'adapter-{self.layer_idx}'].append(gate_output.detach().squeeze().cpu().numpy())
+                    #print('This gate output:\n', gate_output.detach().squeeze().cpu().numpy())
+                    self.gate_output_d[f'adapter-{adapter_stack_layer}-{self.layer_idx}'].append(gate_output.detach().squeeze().cpu().numpy())
                 else:
                     hidden_states, _, up = output
                     # as this stack might be part of a fusion block, return the adapter up-projection output here
@@ -189,9 +186,6 @@ class AdapterLayerBaseMixin(ABC):
                 if i == len(adapter_setup) - 1:
                     return hidden_states, up, input_tensor
             # Case X: No adapter which is part of this module -> ignore
-            # TODO:DELTE
-            if isinstance(adapter_stack_layer, Stack): print('Case 5: Stack')
-            # finish deleting
         # If we got here, we either had another nested composition block
         # or no adapter was found. In both cases, we don't need to set the second return value for fusion
         return hidden_states, None, input_tensor
@@ -212,7 +206,6 @@ class AdapterLayerBaseMixin(ABC):
                 _, up, _ = self.adapter_stack(adapter_block, hidden_states, input_tensor, lvl=lvl + 1)
                 if up is not None:  # could be none if stack is empty
                     up_list.append(up)
-                print('Fusion, Case 1: Nested stack')
             # Case 2: We have a single adapter which is part of this module -> forward pass
             elif adapter_block in self.adapters:
                 adapter_layer = self.adapters[adapter_block]
