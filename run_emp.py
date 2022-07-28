@@ -310,10 +310,10 @@ def main():
         if model_args.use_stacking_adapter:  # Added by Myra Z.
             # TODO: Make this adapter based on the model inputs
             # TODO: Might need to use the code from above
-            try:
-                emotion_adapter_name = model.load_adapter(model_args.stacking_adapter, source="hf")
-                #config = AdapterConfig.load("pfeiffer")
-                #emotion_adapter_name = model.load_adapter("sentiment/imdb@ukp", config=config)
+            try: # TODO: other adapter here
+                #emotion_adapter_name = model.load_adapter(model_args.stacking_adapter, source="hf")
+                config = AdapterConfig.load("pfeiffer")
+                emotion_adapter_name = model.load_adapter(model_args.stacking_adapter, config=config)
             except Exception as e:
                 print(f'\n Stacking adapter cannot be used adn is not being used. Exception: \n {e}')
                 emotion_adapter_name = None
