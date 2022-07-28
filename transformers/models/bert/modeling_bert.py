@@ -1173,7 +1173,7 @@ class BertModel(BertModelAdaptersMixin, BertPreTrainedModel):
             #    gate_dict = pd.DataFrame()
             #else:
             print('gate_dict:', gate_dict)
-            if not gate_dict.empty:  # when gate dict is not empty, then add ecoder layer, epoch etc
+            if gate_dict:  # when gate dict is not empty, then add ecoder layer, epoch etc
                 gate_dict.update({'encoder_layer': idx, 'epoch': epoch, 'split': split, 'is_in_train':is_in_train})
             new_gate = pd.DataFrame(gate_dict)
             current_gate = pd.concat([current_gate, new_gate], ignore_index=True)
