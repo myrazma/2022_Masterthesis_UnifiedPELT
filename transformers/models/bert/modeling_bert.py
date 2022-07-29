@@ -1177,7 +1177,6 @@ class BertModel(BertModelAdaptersMixin, BertPreTrainedModel):
             #if prefix_gate is None and lora_gate_value is None and lora_gate_query is None and gate_output_d is None:
             #    gate_dict = pd.DataFrame()
             #else:
-            print('gate_dict:', gate_dict.keys)
             if gate_dict:  # when gate dict is not empty, then add ecoder layer, epoch etc
                 gate_dict.update({'encoder_layer': idx, 'epoch': epoch, 'split': split, 'is_in_train':is_in_train})
             new_gate = pd.DataFrame(gate_dict)
