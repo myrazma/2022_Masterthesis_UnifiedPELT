@@ -787,7 +787,7 @@ def log_plot_gates_per_layer(model, tensorboard_writer, use_wandb):
                 y_pos = x + idx * bar_width
                 color_i = this_colors[idx]
                 label_i = col[5:].replace('-', ' ').replace('_', ' ')
-                axs.bar(y=y_pos, xerr=grouped_std[col], width=grouped_mean[col], height=bar_width, label=label_i, color=color_i)#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
+                axs.barh(y=y_pos, xerr=grouped_std[col], width=grouped_mean[col], height=bar_width, label=label_i, color=color_i)#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
             
             axs.set_ylabel('Encoder Layer')
             axs.set_yticklabels(grouped_mean.index.to_numpy())
@@ -799,6 +799,7 @@ def log_plot_gates_per_layer(model, tensorboard_writer, use_wandb):
 
             title = f'Mean Gating Values for all Encoder Layers'
             fig.suptitle(title)
+            title = f'{key}/gating_layers'
             plt.xlabel('Mean gating value')
             if tensorboard_writer is not None:
                 tensorboard_writer.add_figure(title, plt.gcf())
