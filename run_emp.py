@@ -336,7 +336,6 @@ def main():
         else:
             lang_adapter_name = None
         # Freeze all model weights except of those of this adapter
-        model.train_adapter([task_name])
         # Set the adapters to be used in every forward pass
         # added by Myra Z.:
         # Added more adapter possibilities here
@@ -350,6 +349,8 @@ def main():
             #model.set_active_adapters([emotion_adapter_name, task_name])
         else:  # Otherwise just set them to active
             model.set_active_adapters(active_adapters_list)
+        
+        model.train_adapter([task_name])
 
         if model_args.train_all_gates_adapters:  # all gates of the adapters will be trainable, by default only the trainable adapters will have trainable gates
             names = [n for n, p in model.named_parameters()]
@@ -357,6 +358,7 @@ def main():
             for n, p in zip(names, paramsis):
                 if 'adapters' in n and 'gate' in n:
                     p.requires_grad = True
+        
 
     else:
         except_para_l = []
