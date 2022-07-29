@@ -90,7 +90,8 @@ check_min_version("4.5.0")
 
 logger = logging.getLogger(__name__)
 
-COLORS = ['#029e72', '#e69f00', '#f0e441', '#57b4e8']
+#COLORS = ['#029e72', '#e69f00', '#f0e441', '#57b4e8']
+COLORS = ['#D81B60', '#1E88E5', '#FFC107','#004D40','#029e72', '#e69f00', '#f0e441', '#57b4e8', '#b4a7d6', '#b1bab2']
 
 
 def main():
@@ -765,32 +766,38 @@ def log_plot_gates_per_layer(model, tensorboard_writer, use_wandb):
             fig, axs = plt.subplots()
             dataset = gate_per_set[key]
             #dataset = dataset[dataset['encoder_layer'] == layer].reset_index()
-            grouped_mean = dataset.groupby(['encoder_layer']).agg({'gate_prefix':'mean', 'gate_lora_value':'mean', 'gate_lora_query':'mean', 'gate_adapters':'mean'})
-            grouped_std = dataset.groupby(['encoder_layer']).agg({'gate_prefix':'std', 'gate_lora_value':'std', 'gate_lora_query':'std', 'gate_adapters':'std'})
-            
+
+            gating_cols = [col for col in dataset.columns if 'gate' in col]
+            grouped_mean = dataset.groupby(['encoder_layer']).agg({col: 'mean' for col in gating_cols})
+            grouped_std = dataset.groupby(['encoder_layer']).agg({col: 'std' for col in gating_cols})
+
             bar_width = 2
-            width = bar_width*4 + bar_width*1.5
+            width = bar_width * (len(gating_cols)) + bar_width
             x = grouped_mean.index.to_numpy() * width
-            axs.barh(y=x - ((bar_width/2)+bar_width), xerr=grouped_std['gate_prefix'], width=grouped_mean['gate_prefix'], height=bar_width, label='Prefix Tuning', color='#029e72')#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
-            axs.barh(y=x - (bar_width/2), xerr=grouped_std['gate_lora_value'], width=grouped_mean['gate_lora_value'], height=bar_width, label='LoRA value', color='#e69f00')#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
-            axs.barh(y=x + (bar_width/2), xerr=grouped_std['gate_lora_query'], width=grouped_mean['gate_lora_query'], height=bar_width, label='LoRA query', color='#f0e441')#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
-            axs.barh(y=x + ((bar_width/2)+bar_width), xerr=grouped_std['gate_adapters'], width=grouped_mean['gate_adapters'], height=bar_width, label='Adapters', color='#57b4e8')#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
+            this_colors = COLORS
+            if len(this_colors) < len(gating_cols):  # if not enough colors in the list
+                this_colors = [COLORS[i] if i < len(COLORS) else '#000000' for i in range(len(gating_cols))]
+
+            fig, axs = plt.subplots()
+            fig.set_figheight(len(grouped_mean)*3)
+            for idx, col in enumerate(gating_cols):
+                y_pos = x + idx * bar_width
+                color_i = this_colors[idx]
+                label_i = col[5:].replace('-', ' ').replace('_', ' ')
+                axs.barh(y=y_pos, xerr=grouped_std[col], width=grouped_mean[col], height=bar_width, label=label_i, color=color_i)#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
+            
             axs.set_ylabel('Encoder Layer')
             axs.set_yticklabels(grouped_mean.index.to_numpy())
-            axs.set_yticks(x)
-            axs.set_title(f'{key} data set')
+            axs.set_yticks(x + ((len(gating_cols)-1) * bar_width)/2)
+            axs.set_title('data set')
+            axs.set_ylim(x[0]-bar_width/2, x[-1] + ((len(gating_cols)-1) * bar_width) + bar_width/2)
             axs.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-            idx += 1
+
 
             title = f'Mean Gating Values for all Encoder Layers'
             fig.suptitle(title)
             plt.xlabel('Mean gating value')
-            fig.tight_layout()
-            if tensorboard_writer is not None:
-                tensorboard_writer.add_figure(title, plt.gcf())
-            if use_wandb:
-                wandb.log({f'{key}/gating_layers': wandb.Image(plt)})
-            plt.close()
+            plt.show()
 
 def log_plot_gates_per_epoch(model, tensorboard_writer=None, use_wandb=False):
     gates = model.bert.gates
@@ -807,15 +814,17 @@ def log_plot_gates_per_epoch(model, tensorboard_writer=None, use_wandb=False):
     
     idx = 0
     for key in gate_per_set.keys():
-        columns = ['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters']
         if show_plot_crit(key):
             dataset = gate_per_set[key]
             dataset.dropna(axis=1, inplace=True)
-            available_columns = [c for c in columns if c in dataset.columns]
-            if len(available_columns) < 2:  # No column available -> no plot
-                continue
-            grouped_mean = dataset.groupby(['encoder_layer', 'epoch']).agg({c: 'mean' for c in available_columns})
-            grouped_std = dataset.groupby(['encoder_layer', 'epoch']).agg({c: 'std' for c in available_columns})
+            #available_columns = [c for c in columns if c in dataset.columns]
+            #if len(available_columns) < 2:  # No column available -> no plot
+            #    continue
+            gating_cols = [col for col in dataset.columns if 'gate' in col]
+            grouped_mean = dataset.groupby(['encoder_layer', 'epoch']).agg({col: 'mean' for col in gating_cols})
+            grouped_std = dataset.groupby(['encoder_layer', 'epoch']).agg({col: 'std' for col in gating_cols})
+            #grouped_mean = dataset.groupby(['encoder_layer', 'epoch']).agg({c: 'mean' for c in available_columns})
+            #grouped_std = dataset.groupby(['encoder_layer', 'epoch']).agg({c: 'std' for c in available_columns})
             for layer in encoder_layers:
                 layer_mean = grouped_mean.loc[layer]
                 layer_std = grouped_std.loc[layer]
@@ -823,12 +832,13 @@ def log_plot_gates_per_epoch(model, tensorboard_writer=None, use_wandb=False):
                 bar_width = 2
                 width = bar_width*4 + bar_width*1.5
                 
-                for i, col in enumerate(columns):
-                    if col not in available_columns:
+                for i, col in enumerate(gating_cols):
+                    if col not in gating_cols:
                         continue
 
+                    label_i = col[5:].replace('-', ' ').replace('_', ' ')
                     x = np.array(range(len(layer_mean[col].to_numpy())))
-                    axs.plot(x, layer_mean[col].to_numpy(), c=COLORS[i], label=col[5:])
+                    axs.plot(x, layer_mean[col].to_numpy(), c=COLORS[i], label=label_i)
                     axs.fill_between(x, layer_mean[col].to_numpy() + layer_std[col].to_numpy(), layer_mean[col].to_numpy() - layer_std[col].to_numpy(), color=COLORS[i], alpha=0.5)
                 if len(x) <= 1:
                     plt.close()
