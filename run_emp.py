@@ -798,7 +798,11 @@ def log_plot_gates_per_layer(model, tensorboard_writer, use_wandb):
             title = f'Mean Gating Values for all Encoder Layers'
             fig.suptitle(title)
             plt.xlabel('Mean gating value')
-            plt.show()
+            if tensorboard_writer is not None:
+                tensorboard_writer.add_figure(title, plt.gcf())
+            if use_wandb:
+                wandb.log({title: wandb.Image(plt)})
+            plt.close()
 
 def log_plot_gates_per_epoch(model, tensorboard_writer=None, use_wandb=False):
     gates = model.bert.gates
