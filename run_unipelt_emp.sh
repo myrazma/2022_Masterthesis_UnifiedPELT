@@ -44,8 +44,8 @@ fi
 # UniPELT APL
 if [ $pelt_method == "unipelt_apl" ]; then
     echo "Using Unipelt APL (adapter, prefix-tuning, lora; exclude: BitFit)"
-    learning_rate=5e-4
-    tensorboard_output_dir=runs/pelt_unified_apl_bert
+    learning_rate=1e-4
+    tensorboard_output_dir=runs/pelt_unified_apl_bert_1e4
     add_enc_prefix=True
     train_adapter=True
     add_lora=True
