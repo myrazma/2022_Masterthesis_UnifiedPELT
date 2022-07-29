@@ -780,17 +780,17 @@ def log_plot_gates_per_layer(model, tensorboard_writer, use_wandb):
                 this_colors = [COLORS[i] if i < len(COLORS) else '#000000' for i in range(len(gating_cols))]
 
             fig, axs = plt.subplots()
-            fig.set_figheight(len(grouped_mean)*3)
+            fig.set_figwidth(len(grouped_mean)*2)
             for idx, col in enumerate(gating_cols):
                 y_pos = x + idx * bar_width
                 color_i = this_colors[idx]
                 label_i = col[5:].replace('-', ' ').replace('_', ' ')
-                axs.barh(y=y_pos, xerr=grouped_std[col], width=grouped_mean[col], height=bar_width, label=label_i, color=color_i)#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
+                axs.bar(y=y_pos, xerr=grouped_std[col], width=grouped_mean[col], height=bar_width, label=label_i, color=color_i)#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
             
             axs.set_ylabel('Encoder Layer')
             axs.set_yticklabels(grouped_mean.index.to_numpy())
             axs.set_yticks(x + ((len(gating_cols)-1) * bar_width)/2)
-            axs.set_title('data set')
+            axs.set_title(f'{key} data set')
             axs.set_ylim(x[0]-bar_width/2, x[-1] + ((len(gating_cols)-1) * bar_width) + bar_width/2)
             axs.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
