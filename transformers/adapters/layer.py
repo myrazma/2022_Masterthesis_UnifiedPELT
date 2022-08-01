@@ -170,6 +170,8 @@ class AdapterLayerBaseMixin(ABC):
                 print('Case 4: single adapter')
                 print('self.adapters', self.adapters)
                 print('adapter_stack_layer', adapter_stack_layer)
+                print(adapter_setup)
+                print()
                 adapter_layer = self.adapters[adapter_stack_layer]
                 adapter_config = self.config.adapters.get(adapter_stack_layer)
                 hidden_states, _, residual = self.get_adapter_preparams(adapter_config, hidden_states, input_tensor)
