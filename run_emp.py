@@ -348,6 +348,13 @@ def main():
         if lang_adapter_name: active_adapters_list.append(lang_adapter_name)
         if emotion_adapter_name: active_adapters_list.append(emotion_adapter_name)
         
+        if model_args.train_all_gates_adapters:  # all gates of the adapters will be trainable, by default only the trainable adapters will have trainable gates
+            names = [n for n, p in model.named_parameters()]
+            paramsis = [param for param in model.parameters()]
+            for n, p in zip(names, paramsis):
+                if 'adapters' in n and 'gate' in n:
+                    p.requires_grad = True
+        
         if model_args.use_stacking_adapter and emotion_adapter_name and task_name:  # if use emotion_stack is true and we have two adapters
             print(' ----- using Stack -----')
             model.active_adapters = Stack(emotion_adapter_name, task_name)
@@ -356,15 +363,6 @@ def main():
             model.set_active_adapters(active_adapters_list)
         
         model.train_adapter([task_name])
-
-        if model_args.train_all_gates_adapters:  # all gates of the adapters will be trainable, by default only the trainable adapters will have trainable gates
-            names = [n for n, p in model.named_parameters()]
-            paramsis = [param for param in model.parameters()]
-            for n, p in zip(names, paramsis):
-                if 'adapters' in n and 'gate' in n:
-                    p.requires_grad = True
-        
-
     else:
         except_para_l = []
         if config.tune_bias:
