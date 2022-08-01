@@ -787,7 +787,7 @@ def log_plot_gates_per_layer(model, tensorboard_writer, use_wandb):
                 this_colors = [COLORS[i] if i < len(COLORS) else '#000000' for i in range(len(gating_cols))]
 
             fig, axs = plt.subplots()
-            fig.set_figheight(len(grouped_mean)*2)
+            fig.set_figheight(len(grouped_mean))
             for idx, col in enumerate(gating_cols):
                 y_pos = x + idx * bar_width
                 color_i = this_colors[idx]
@@ -799,7 +799,7 @@ def log_plot_gates_per_layer(model, tensorboard_writer, use_wandb):
             axs.set_yticks(x + ((len(gating_cols)-1) * bar_width)/2)
             axs.set_title(f'{key} data set')
             axs.set_ylim(x[0]-bar_width/2, x[-1] + ((len(gating_cols)-1) * bar_width) + bar_width/2)
-            axs.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+            axs.legend()#loc='center left', bbox_to_anchor=(1, 0.5))
 
 
             title = f'Mean Gating Values for all Encoder Layers'

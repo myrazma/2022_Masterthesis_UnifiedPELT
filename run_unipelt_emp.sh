@@ -25,7 +25,7 @@ stacking_adapter="/trained_adapters/bert-base-uncased-pf-emotion" # "AdapterHub/
 use_stacking_adapter=True
 train_all_gates_adapters=True
 
-task_name=empathy
+task_name=distress
 
 # Full fine tuning
 if [ $pelt_method == "full" ]; then
