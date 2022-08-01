@@ -1148,8 +1148,6 @@ class BertModel(BertModelAdaptersMixin, BertPreTrainedModel):
                 try:
                     # what output do i actually get?
                     for adapter_name in layer.output.gate_output_d.keys():
-                        print('Layer:', idx)
-                        print(adapter_name)
                         #layer_adapter_name = [key for key in layer.output.gate_output_d.keys() if str(idx) in key][0]  # works for one adapter per layer
                         gate_output_d = [gate for batch in layer.output.gate_output_d[adapter_name] for gate in list(batch)]
                         adapter_name = 'gate_' + clean(adapter_name) # TODO, should be task_name (distress) or stacking adapter_name
