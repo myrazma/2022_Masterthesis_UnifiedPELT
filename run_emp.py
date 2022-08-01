@@ -314,8 +314,8 @@ def main():
             try: # TODO: other adapter here
 
                 emotion_adapter_name_path = data_args.data_dir + "/trained_adapters/bert-base-uncased-pf-emotion"
-
-                emotion_adapter_name = model.load_adapter(emotion_adapter_name_path, load_as=emotion_adapter_name_path.split('/')[-1])
+                emotion_adapter_name = model.load_adapter(emotion_adapter_name_path, load_as='emotion')
+                print('emotion_adapter_name:', emotion_adapter_name)
                 #emotion_adapter_name = model.load_adapter(model_args.stacking_adapter, source="hf")
                 #config = AdapterConfig.load("pfeiffer")
                 #emotion_adapter_name = model.load_adapter(model_args.stacking_adapter, config=config)
@@ -786,7 +786,7 @@ def log_plot_gates_per_layer(model, tensorboard_writer, use_wandb):
                 this_colors = [COLORS[i] if i < len(COLORS) else '#000000' for i in range(len(gating_cols))]
 
             fig, axs = plt.subplots()
-            fig.set_figwidth(len(grouped_mean)*2)
+            fig.set_figheight(len(grouped_mean)*2)
             for idx, col in enumerate(gating_cols):
                 y_pos = x + idx * bar_width
                 color_i = this_colors[idx]
