@@ -318,7 +318,8 @@ def main():
                 #print('emotion_adapter_name:', emotion_adapter_name)
                 #emotion_adapter_name = model.load_adapter(model_args.stacking_adapter, source="hf")
                 config = AdapterConfig.load("pfeiffer")
-                emotion_adapter_name = model.load_adapter(model_args.stacking_adapter, config=config)
+                emotion_adapter_name = model.load_adapter("sentiment/imdb@ukp", config=config)
+                #emotion_adapter_name = model.load_adapter(model_args.stacking_adapter, config=config)
             except Exception as e:
                 print(f'\n Stacking adapter cannot be used adn is not being used. Exception: \n {e}')
                 emotion_adapter_name = None
