@@ -12,12 +12,20 @@ wandb_entity="masterthesis-zmarsly"
 # choose a method here and use the settings as stated below
 #pelt_method="full"
 #pelt_method="unipelt"
-pelt_method="unipelt_apl"
+#pelt_method="unipelt_apl"
 #pelt_method="unipelt_ap"
-#pelt_method="adapter"
+pelt_method="adapter"
 #pelt_method="lora"
 #pelt_method="prefix"
 #pelt_method="bitfit"
+
+
+# for stacking and adding of another adapter
+stacking_adapter="/trained_adapters/bert-base-uncased-pf-emotion" # "AdapterHub/bert-base-uncased-pf-emotion"
+use_stacking_adapter=True
+train_all_gates_adapters=True
+
+task_name=empathy
 
 # Full fine tuning
 if [ $pelt_method == "full" ]; then
@@ -107,13 +115,10 @@ if [ $pelt_method == "adapter" ]; then
     tune_bias=False
 fi
 
-# for stacking and adding of another adapter
-stacking_adapter="/trained_adapters/bert-base-uncased-pf-emotion" # "AdapterHub/bert-base-uncased-pf-emotion"
-use_stacking_adapter=True
-train_all_gates_adapters=True
 
 # call the python file with stated parameters
 python run_emp.py \
+    --task_name ${task_name} \
     --data_dir data/ \
     --output_dir output/unipelt_output  \
     --overwrite_output_dir \
