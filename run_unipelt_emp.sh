@@ -108,7 +108,7 @@ if [ $pelt_method == "adapter" ]; then
 fi
 
 # for stacking and adding of another adapter
-stacking_adapter="sentiment/imdb@ukp"
+stacking_adapter="AdapterHub/bert-base-uncased-pf-emotion"
 use_stacking_adapter=True
 train_all_gates_adapters=True
 
