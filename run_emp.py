@@ -312,7 +312,11 @@ def main():
             # TODO: Make this adapter based on the model inputs
             # TODO: Might need to use the code from above
             try: # TODO: other adapter here
-                emotion_adapter_name = model.load_adapter(model_args.stacking_adapter, source="hf")
+
+                emotion_adapter_name_path = data_args.data_dir + "/trained_adapters/bert-base-uncased-pf-emotion"
+
+                emotion_adapter_name = model.load_adapter(emotion_adapter_name_path, load_as=emotion_adapter_name_path.split('/')[-1])
+                #emotion_adapter_name = model.load_adapter(model_args.stacking_adapter, source="hf")
                 #config = AdapterConfig.load("pfeiffer")
                 #emotion_adapter_name = model.load_adapter(model_args.stacking_adapter, config=config)
             except Exception as e:
