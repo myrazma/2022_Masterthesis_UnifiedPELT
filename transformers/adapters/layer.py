@@ -146,6 +146,7 @@ class AdapterLayerBaseMixin(ABC):
         """
         Forwards the given input through the given stack of adapters.
         """
+        print('adapter_setup', adapter_setup)
         for i, adapter_stack_layer in enumerate(adapter_setup):
             print('adapter_stack_layer', adapter_stack_layer)
             # Break if setup is too deep
