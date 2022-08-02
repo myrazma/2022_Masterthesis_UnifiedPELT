@@ -22,7 +22,7 @@ pelt_method="unipelt_apl"
 
 task_name=distress
 
-output=output/unipelt_output_test
+output_dir=output/unipelt_output_test
 tensorboard_output_dir=runs/test
 
 # Full fine tuning
