@@ -655,7 +655,7 @@ def log_plot_predictions(y_true, y_hat, tensorboard_writer, use_wandb=False, out
     if use_wandb:
         wandb.log({'Predictions', plt})
     if os.path.exists(output_dir) and output_dir != '':
-        plt.savefig(split + '_predictions.pdf', bbox_inches='tight')
+        plt.savefig(output_dir + '/' + split + '_predictions.pdf', bbox_inches='tight')
     plt.close()
 
 def log_wandb(metrics, use_wandb):
@@ -697,7 +697,7 @@ def log_plot_gradients(model, tensorboard_writer, use_wandb=False, output_dir=''
     if use_wandb:
         wandb.log({'Gating gradients per layer': wandb.Image(plt)})
     if os.path.exists(output_dir) and output_dir != '':
-        plt.savefig('gradient_gating_per_layer.pdf', bbox_inches='tight')
+        plt.savefig(output_dir + '/' + 'gradient_gating_per_layer.pdf', bbox_inches='tight')
 
     plt.close()
 
@@ -769,7 +769,7 @@ def log_plot_gates(model, tensorboard_writer, use_wandb=False, output_dir=''):
         if use_wandb:
             wandb.log({title: wandb.Image(plt)})
         if os.path.exists(output_dir) and output_dir != '':
-            plt.savefig(title.replace('/', '_') + '.pdf', bbox_inches='tight')
+            plt.savefig(output_dir + '/' + title.replace('/', '_') + '.pdf', bbox_inches='tight')
         plt.close()
 
 
@@ -830,7 +830,7 @@ def log_plot_gates_per_layer(model, tensorboard_writer, use_wandb, output_dir=''
             if use_wandb:
                 wandb.log({title: wandb.Image(plt)})
             if os.path.exists(output_dir) and output_dir != '':
-                plt.savefig(title.replace('/', '_') + '.pdf', bbox_inches='tight')
+                plt.savefig(output_dir + '/' + title.replace('/', '_') + '.pdf', bbox_inches='tight')
             plt.close()
 
 def log_plot_gates_per_epoch(model, tensorboard_writer=None, use_wandb=False, output_dir=''):
@@ -893,8 +893,6 @@ def log_plot_gates_per_epoch(model, tensorboard_writer=None, use_wandb=False, ou
                     tensorboard_writer.add_figure(title, plt.gcf())
                 if use_wandb:
                     wandb.log({title: wandb.Image(plt)})
-                if os.path.exists(output_dir) and output_dir != '':
-                    plt.savefig(title + '.pdf', bbox_inches='tight')
                 if os.path.exists(output_dir) and output_dir != '':
                     plt.savefig(output_dir + '/' + title.replace('/', '_') + '.pdf', bbox_inches='tight')
                 plt.close()
