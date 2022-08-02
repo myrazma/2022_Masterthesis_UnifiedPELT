@@ -1900,6 +1900,7 @@ class Trainer:
         # Determine the new best metric / best model checkpoint
         early_stop = False
         if output.metrics is not None:
+            print(output.metrics)
             if f'{metric_key_prefix}/f1' in output.metrics:
                 metric_to_check = f'{metric_key_prefix}/f1'
             elif f'{metric_key_prefix}/matthews_correlation' in output.metrics:

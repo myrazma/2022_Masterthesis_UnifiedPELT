@@ -548,8 +548,6 @@ def main():
 
     #log_plot_gradients(model, tensorboard_writer, use_wandb)
     log_plot_gates(model, tensorboard_writer, use_wandb, output_dir=training_args.output_dir)
-    log_plot_gates_per_layer(model, tensorboard_writer, use_wandb, output_dir=training_args.output_dir)
-    log_plot_gates_per_epoch(model, tensorboard_writer, use_wandb, output_dir=training_args.output_dir)
 
 
     # set epoch of trainer state control to None so we know that training is over
@@ -638,10 +636,11 @@ def main():
                             item = label_list[item]
                             writer.write(f"{index}\t{item}\n")
     
+    log_plot_gates_per_layer(model, tensorboard_writer, use_wandb, output_dir=training_args.output_dir)
+    log_plot_gates_per_epoch(model, tensorboard_writer, use_wandb, output_dir=training_args.output_dir)
     # Added by Myra Z.
     if len(model.bert.gates) > 0:
         model.bert.gates.to_csv(training_args.output_dir + '/gates.csv')
-    
 
 
 # Added by Myra Z.
