@@ -653,7 +653,7 @@ def log_plot_predictions(y_true, y_hat, tensorboard_writer, use_wandb=False, out
     if tensorboard_writer is not None:
         tensorboard_writer.add_figure('Scatter_Predictions', plt.gcf())
     if use_wandb:
-        wandb.log({'Predictions', plt})
+        wandb.log({split + '_predictions',  wandb.Image(plt)})
     if os.path.exists(output_dir) and output_dir != '':
         plt.savefig(output_dir + '/' + split + '_predictions.pdf', bbox_inches='tight')
     plt.close()
