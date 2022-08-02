@@ -768,9 +768,8 @@ def log_plot_gates(model, tensorboard_writer, use_wandb=False, output_dir=''):
             tensorboard_writer.add_figure(title, plt.gcf())
         if use_wandb:
             wandb.log({title: wandb.Image(plt)})
-        
         if os.path.exists(output_dir) and output_dir != '':
-            plt.savefig(title + '.pdf', bbox_inches='tight')
+            plt.savefig(title.replace('/', '_') + '.pdf', bbox_inches='tight')
         plt.close()
 
 
@@ -831,7 +830,7 @@ def log_plot_gates_per_layer(model, tensorboard_writer, use_wandb, output_dir=''
             if use_wandb:
                 wandb.log({title: wandb.Image(plt)})
             if os.path.exists(output_dir) and output_dir != '':
-                plt.savefig(title + '.pdf', bbox_inches='tight')
+                plt.savefig(title.replace('/', '_') + '.pdf', bbox_inches='tight')
             plt.close()
 
 def log_plot_gates_per_epoch(model, tensorboard_writer=None, use_wandb=False, output_dir=''):
@@ -896,6 +895,8 @@ def log_plot_gates_per_epoch(model, tensorboard_writer=None, use_wandb=False, ou
                     wandb.log({title: wandb.Image(plt)})
                 if os.path.exists(output_dir) and output_dir != '':
                     plt.savefig(title + '.pdf', bbox_inches='tight')
+                if os.path.exists(output_dir) and output_dir != '':
+                    plt.savefig(output_dir + '/' + title.replace('/', '_') + '.pdf', bbox_inches='tight')
                 plt.close()
 
 
