@@ -585,12 +585,12 @@ def main():
             predictions = np.squeeze(predictions) if is_regression else np.argmax(predictions, axis=1)
             print('type eval_gates_df', type(eval_gates_df))
             print('eval_gates_df', eval_gates_df)
-            print(true_score.shape)
             try:
                 print(len(eval_gates_df))
             except:
                 pass
             true_score = np.reshape(eval_dataset['label'],(-1,))
+            print(true_score.shape)
             try:
                 essay_ids = np.reshape(eval_dataset['message_id'],(-1,))
                 print(essay_ids.shape)
