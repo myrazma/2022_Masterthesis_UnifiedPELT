@@ -25,6 +25,7 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
+from black import out
 from matplotlib import colors
 
 sys.path.append('../')
@@ -160,9 +161,12 @@ def main():
     use_wandb = WANDB_AVAILABLE and (data_args.wandb_entity is not None or data_args.wandb_entity != '' or data_args.wandb_entity != 'None')
     print('Use wandb:', use_wandb)
     if use_wandb:  # should already be imported
-        os.system('cmd /k "wandb login"')  # login
-        wandb.init(project="UniPELT", entity=data_args.wandb_entity, name=data_args.tensorboard_output_dir[5:])
-
+        try:
+            os.system('cmd /k "wandb login"')  # login
+            wandb.init(project=data_args.wandb_project, entity=data_args.wandb_entity, name=data_args.tensorboard_output_dir[5:])
+        except Exception as e:
+            print(f'\n run model without wandb: \n {e} \n')
+            
     # store model config
     if use_wandb:
         wandb.config.update({
@@ -198,11 +202,10 @@ def main():
         use_auth_token=True if model_args.use_auth_token else None,
     )
 
-    dataset_emp_train, dataset_dis_train = preprocessing.get_preprocessed_dataset(data_train_pd, tokenizer, training_args.seed, return_huggingface_ds=True, padding=padding)
-    dataset_emp_dev, dataset_dis_dev = preprocessing.get_preprocessed_dataset(data_dev_pd, tokenizer, training_args.seed, return_huggingface_ds=True, padding=padding)
-    dataset_emp_test, dataset_dis_test = preprocessing.get_preprocessed_dataset(data_test_pd, tokenizer, training_args.seed, return_huggingface_ds=True, padding=padding)
+    dataset_emp_train, dataset_dis_train = preprocessing.get_preprocessed_dataset(data_train_pd, tokenizer, training_args.seed, return_huggingface_ds=True, padding=padding, additional_cols=['message_id'])
+    dataset_emp_dev, dataset_dis_dev = preprocessing.get_preprocessed_dataset(data_dev_pd, tokenizer, training_args.seed, return_huggingface_ds=True, padding=padding, additional_cols=['message_id'])
+    dataset_emp_test, dataset_dis_test = preprocessing.get_preprocessed_dataset(data_test_pd, tokenizer, training_args.seed, return_huggingface_ds=True, padding=padding, additional_cols=['message_id'])
     
-
     # --- choose dataset and data loader based on empathy ---
     # per default use empathy label
     train_dataset = dataset_emp_train
@@ -215,7 +218,6 @@ def main():
         test_dataset = dataset_dis_test
         display_text = "Using distress data"
     print('\n------------ ' + display_text + ' ------------\n')
-
 
     # Task selection was here before, but since we are only using one task (regression),
     # these settings can stay the same for us
@@ -275,7 +277,6 @@ def main():
         use_auth_token=True if model_args.use_auth_token else None,
     )
 
-
     # Added by Myra Z.
     # TODO: If this is working we should do this as a model parameter
     # we could also think about in stead of providing a boolean, 
@@ -283,7 +284,6 @@ def main():
     #model_args.stacking_adapter  # the pathe to the stacking adapter
     #model_args.use_stacking_adapter  # If we should use the stacking adapter
     #model_args.train_all_gates_adapters  # If True, then all gate parameters fo the adapter will be set to trainable
-    
     
     # Setup adapters
     if adapter_args.train_adapter:
@@ -546,9 +546,9 @@ def main():
 
 
     #log_plot_gradients(model, tensorboard_writer, use_wandb)
-    log_plot_gates(model, tensorboard_writer, use_wandb)
-    log_plot_gates_per_layer(model, tensorboard_writer, use_wandb)
-    log_plot_gates_per_epoch(model, tensorboard_writer, use_wandb)
+    log_plot_gates(model, tensorboard_writer, use_wandb, output_dir=training_args.output_dir)
+    log_plot_gates_per_layer(model, tensorboard_writer, use_wandb, output_dir=training_args.output_dir)
+    log_plot_gates_per_epoch(model, tensorboard_writer, use_wandb, output_dir=training_args.output_dir)
 
 
     # set epoch of trainer state control to None so we know that training is over
@@ -578,12 +578,25 @@ def main():
             trainer.save_metrics("eval", metrics)
             log_wandb(metrics, use_wandb)  # Added by Myra Z.: log wandb is use_wandb == True
             
-            predictions = trainer.predict(test_dataset=eval_dataset).predictions
+            #predictions = trainer.predict(test_dataset=eval_dataset).predictions
+            output, eval_gates_df = trainer.predict(test_dataset=eval_dataset, return_gates=True)
+            predictions = output.predictions
             predictions = np.squeeze(predictions) if is_regression else np.argmax(predictions, axis=1)
-
+            print('type eval_gates_df', type(eval_gates_df))
+            print('eval_gates_df', eval_gates_df)
+            print(true_score.shape)
+            try:
+                print(len(eval_gates_df))
+            except:
+                pass
             true_score = np.reshape(eval_dataset['label'],(-1,))
-            if tensorboard_writer is not None:
-                log_plot_predictions(true_score, predictions, tensorboard_writer)
+            try:
+                essay_ids = np.reshape(eval_dataset['message_id'],(-1,))
+                print(essay_ids.shape)
+
+            except:
+                pass
+            log_plot_predictions(true_score, predictions, tensorboard_writer, use_wandb)
 
     if training_args.do_predict:
         logger.info("*** Test ***")
@@ -610,8 +623,7 @@ def main():
             
             # Added by Myra Z.
             true_score = np.reshape(test_dataset['label'],(-1,))
-            if tensorboard_writer is not None:
-                log_plot_predictions(true_score, predictions, tensorboard_writer)
+            log_plot_predictions(true_score, predictions, tensorboard_writer, use_wandb, output_dir=training_args.output_dir, split='test')
 
             output_test_file = os.path.join(training_args.output_dir, f"test_results_{task}.txt")
             if trainer.is_world_process_zero():
@@ -632,22 +644,24 @@ def main():
 
 
 # Added by Myra Z.
-def log_plot_predictions(y_true, y_hat, tensorboard_writer, use_wandb=False):
+def log_plot_predictions(y_true, y_hat, tensorboard_writer, use_wandb=False, output_dir='', split=''):
     plt.scatter(y_true, y_hat)
     plt.xlabel('true score')
     plt.ylabel('predictions')
-    plt.title('Scatterplot of the true labels and the predictions.')
+    plt.title(f'Scatterplot of the true labels and the predictions of {split}.')
     if tensorboard_writer is not None:
         tensorboard_writer.add_figure('Scatter_Predictions', plt.gcf())
     if use_wandb:
         wandb.log({'Predictions', plt})
+    if os.path.exists(output_dir) and output_dir != '':
+        plt.savefig(split + '_predictions.pdf', bbox_inches='tight')
     plt.close()
 
 def log_wandb(metrics, use_wandb):
     if use_wandb:  # only log if True, otherwise package might not be available
         wandb.log(metrics)  # Added by Myra Z.
 
-def log_plot_gradients(model, tensorboard_writer, use_wandb=False):
+def log_plot_gradients(model, tensorboard_writer, use_wandb=False, output_dir=''):
     # plot gating of the gradients of the last state of the model
     # investigate gating
     grad_by_layer = {}
@@ -681,6 +695,8 @@ def log_plot_gradients(model, tensorboard_writer, use_wandb=False):
         tensorboard_writer.add_figure('Gating gradients per layer', plt.gcf())
     if use_wandb:
         wandb.log({'Gating gradients per layer': wandb.Image(plt)})
+    if os.path.exists(output_dir) and output_dir != '':
+        plt.savefig('gradient_gating_per_layer.pdf', bbox_inches='tight')
 
     plt.close()
 
@@ -699,7 +715,7 @@ def log_plot_gradients(model, tensorboard_writer, use_wandb=False):
     plt.close()
 
 
-def log_plot_gates(model, tensorboard_writer, use_wandb=False):
+def log_plot_gates(model, tensorboard_writer, use_wandb=False, output_dir=''):
     gates = model.bert.gates
     if gates.empty:
         return
@@ -751,10 +767,13 @@ def log_plot_gates(model, tensorboard_writer, use_wandb=False):
             tensorboard_writer.add_figure(title, plt.gcf())
         if use_wandb:
             wandb.log({title: wandb.Image(plt)})
+        
+        if os.path.exists(output_dir) and output_dir != '':
+            plt.savefig(title + '.pdf', bbox_inches='tight')
         plt.close()
 
 
-def log_plot_gates_per_layer(model, tensorboard_writer, use_wandb):
+def log_plot_gates_per_layer(model, tensorboard_writer, use_wandb, output_dir=''):
     gates = model.bert.gates
     if gates.empty:
         return
@@ -810,9 +829,11 @@ def log_plot_gates_per_layer(model, tensorboard_writer, use_wandb):
                 tensorboard_writer.add_figure(title, plt.gcf())
             if use_wandb:
                 wandb.log({title: wandb.Image(plt)})
+            if os.path.exists(output_dir) and output_dir != '':
+                plt.savefig(title + '.pdf', bbox_inches='tight')
             plt.close()
 
-def log_plot_gates_per_epoch(model, tensorboard_writer=None, use_wandb=False):
+def log_plot_gates_per_epoch(model, tensorboard_writer=None, use_wandb=False, output_dir=''):
     gates = model.bert.gates
     if gates.empty:
         return
@@ -872,6 +893,8 @@ def log_plot_gates_per_epoch(model, tensorboard_writer=None, use_wandb=False):
                     tensorboard_writer.add_figure(title, plt.gcf())
                 if use_wandb:
                     wandb.log({title: wandb.Image(plt)})
+                if os.path.exists(output_dir) and output_dir != '':
+                    plt.savefig(title + '.pdf', bbox_inches='tight')
                 plt.close()
 
 

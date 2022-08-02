@@ -1966,7 +1966,7 @@ class Trainer:
     
 
     def predict(
-            self, test_dataset: Dataset, ignore_keys: Optional[List[str]] = None, metric_key_prefix: str = "test"
+            self, test_dataset: Dataset, ignore_keys: Optional[List[str]] = None, metric_key_prefix: str = "test", return_gates=False
     ) -> PredictionOutput:
         """
         Run prediction and returns predictions and potential metrics.
@@ -2016,7 +2016,8 @@ class Trainer:
 
         gating_df = self.model.bert.store_gate_variables(epoch=self.state.epoch, split=metric_key_prefix, is_in_train=self.is_in_train)  #addd by Myra Z.
         output.metrics.update(gating_metrics(split_prefix=metric_key_prefix, gating_df=gating_df))
-
+        if return_gates:
+            return output, gating_df
         return output
 
     def prediction_loop(

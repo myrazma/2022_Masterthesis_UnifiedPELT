@@ -3,6 +3,7 @@
 
 # setup wandb
 wandb_entity="masterthesis-zmarsly"
+wandb_project="Results"
 # or to not use wandb use:
 #wandb_entity="None"
 
@@ -14,10 +15,10 @@ wandb_entity="masterthesis-zmarsly"
 #pelt_method="unipelt"
 #pelt_method="unipelt_apl"
 #pelt_method="unipelt_ap"
-pelt_method="adapter"
+#pelt_method="adapter"
 #pelt_method="lora"
 #pelt_method="prefix"
-#pelt_method="bitfit"
+pelt_method="bitfit"
 
 
 # for stacking and adding of another adapter
@@ -123,7 +124,7 @@ python run_emp.py \
     --output_dir output/unipelt_output  \
     --overwrite_output_dir \
     --model_name_or_path bert-base-uncased \
-    --do_predict False \
+    --do_predict True \
     --do_eval True \
     --do_train True \
     --num_train_epochs 15 \

@@ -178,7 +178,7 @@ def create_dataloaders_multi_in(inputs, masks, labels, lexical_features, batch_s
 #         Complete Preprocessing of the data
 # ---------------------------------------------------
 
-def get_preprocessed_dataset(data_pd, tokenizer, seed, return_huggingface_ds=False, padding='max_length', shuffle=True):
+def get_preprocessed_dataset(data_pd, tokenizer, seed, return_huggingface_ds=False, padding='max_length', shuffle=True, additional_cols=[]):
     """Preprocess the data from input as pandas pd and return a TensorDataset
     
     Do the following steps:
@@ -187,16 +187,21 @@ def get_preprocessed_dataset(data_pd, tokenizer, seed, return_huggingface_ds=Fal
     3. Normalize the empathy and distress scores from [1,7] to [0,1]
     4. Create Tensor Dataset (or huggingface dataset)
 
-    Returns the datasets separated by empatyh and distress and dev and train.
+    Returns the datasets separated by empathy and distress and dev and train.
 
     Args:
         data_pd (pd.DataFrame): _description_
         tokenizer (_type_): _description_
         seed (int): The seed
         return_huggingface_ds (bool): Return data as huggingface dataset from datasets library. Default: False.
+        shuffle (bool): If the dataset should be shuffled
+        additional_cols (list(str)): Put additional columns here, that you want to keep from the original dataset.
+                Leave empty, if you don't need any additional columns.
 
     Returns:
-        TensorDataset, TensorDataset, TensorDataset, TensorDataset: dataset_emp_train, dataset_emp_dev, dataset_dis_train, dataset_dis_dev
+        TensorDataset, TensorDataset: dataset_emp_train, dataset_dis_train
+        or if return_huggingface_ds=True
+        Dataset, Dataset: dataset_emp_train, dataset_dis_train
     """
 
     # check if the dataset has labels (not True for test set)
@@ -205,6 +210,9 @@ def get_preprocessed_dataset(data_pd, tokenizer, seed, return_huggingface_ds=Fal
     else:
         has_label = False
 
+    data_types = data_pd.dtypes
+    additional_cols_types = [(col, str) if data_types[col] is object else (col, data_types[col]) for col in additional_cols if col in data_pd.columns]  # check that these columns are actually in the data
+    
     # --- Create hugginface datasets ---
     data = pd_to_dataset(data_pd)
 
@@ -236,9 +244,14 @@ def get_preprocessed_dataset(data_pd, tokenizer, seed, return_huggingface_ds=Fal
         if return_huggingface_ds:
             # --- create panda DataFrame datasets ---
             # for empathy
-            dataset_emp_train = Dataset.from_dict({'input_ids': input_ids_train, 'attention_mask':attention_mask_train, 'label': label_scaled_empathy_train})
+            data_tmp = {'input_ids': input_ids_train, 'attention_mask':attention_mask_train, 'label': label_scaled_empathy_train}
+            data_tmp.update({col: np.array(data_encoded[col]).astype(data_type) for col, data_type in additional_cols_types})
+            dataset_emp_train = Dataset.from_dict(data_tmp)
             # for distress
-            dataset_dis_train = Dataset.from_dict({'input_ids': input_ids_train, 'attention_mask':attention_mask_train, 'label': label_scaled_distress_train})
+            data_tmp = {'input_ids': input_ids_train, 'attention_mask':attention_mask_train, 'label': label_scaled_distress_train}
+            data_tmp.update({col: np.array(data_encoded[col]).astype(data_type) for col, data_type in additional_cols_types})
+            dataset_dis_train = Dataset.from_dict(data_tmp)
+
     else:  # for test set
         # --- create datasets ---
         dataset_emp_train = create_tensor_data(input_ids_train, attention_mask_train)
@@ -246,7 +259,9 @@ def get_preprocessed_dataset(data_pd, tokenizer, seed, return_huggingface_ds=Fal
 
         if return_huggingface_ds:
             # --- create panda DataFrame datasets ---
-            dataset_emp_train = Dataset.from_dict({'input_ids': input_ids_train, 'attention_mask':attention_mask_train})
-            dataset_dis_train = Dataset.from_dict({'input_ids': input_ids_train, 'attention_mask':attention_mask_train})
+            data_tmp = {'input_ids': input_ids_train, 'attention_mask':attention_mask_train}
+            data_tmp.update({col: np.array(data_encoded[col]).astype(data_type) for col, data_type in additional_cols_types})
+            dataset_emp_train = Dataset.from_dict(data_tmp)
+            dataset_dis_train = Dataset.from_dict(data_tmp)
 
     return dataset_emp_train, dataset_dis_train
