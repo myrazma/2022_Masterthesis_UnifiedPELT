@@ -322,6 +322,8 @@ def main():
             except Exception as e:
                 print(f'\n Stacking adapter cannot be used adn is not being used. Exception: \n {e}')
                 emotion_adapter_name = None
+        else:
+            emotion_adapter_name = None
 
         # optionally load a pre-trained language adapter
         if adapter_args.load_lang_adapter:
