@@ -653,7 +653,8 @@ def log_plot_predictions(y_true, y_hat, tensorboard_writer, use_wandb=False, out
     if tensorboard_writer is not None:
         tensorboard_writer.add_figure('Scatter_Predictions', plt.gcf())
     if use_wandb:
-        wandb.log({split + '_predictions',  wandb.Image(plt)})
+        title = split + '_predictions'
+        wandb.log({title: wandb.Image(plt)})
     if os.path.exists(output_dir) and output_dir != '':
         plt.savefig(output_dir + '/' + split + '_predictions.pdf', bbox_inches='tight')
     plt.close()
@@ -733,7 +734,6 @@ def log_plot_gates(model, tensorboard_writer, use_wandb=False, output_dir=''):
     for layer in encoder_layers:
         fig, axs = plt.subplots(count_data_available, sharey=True, sharex=False, constrained_layout=True)
         idx = 0
-        print('Non empty datasets:', count_data_available)
         for key in gate_per_set.keys():
             columns = ['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters']
             if show_plot_crit(key):
