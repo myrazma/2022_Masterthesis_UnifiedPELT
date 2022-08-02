@@ -107,7 +107,13 @@ class DataTrainingArguments:
         default=data_dir.default + '/buechel_empathy/goldstandard_dev_2022.tsv', metadata={"help": "A csv or a json file containing the validation data."}
     )
     # edited by Myra Z.
-    test_file: Optional[str] = field(default=data_dir.default + '/buechel_empathy/messages_test_features_ready_for_WS_2022.tsv', metadata={"help": "A csv or a json file containing the test data."})
+    test_file: Optional[str] = field(
+        default=data_dir.default + '/buechel_empathy/messages_test_features_ready_for_WS_2022.tsv', metadata={"help": "A csv or a json file containing the test data."}
+        )
+    # edited by Myra Z. TODO: add file when available
+    test_label_file: Optional[str] = field(
+        default=data_dir.default + '/buechel_empathy/', metadata={"help": "A csv or a json file containing the validation data."}
+    )
     data_seed: Optional[int] = field(
         default=42,
         metadata={

@@ -117,20 +117,27 @@ def choose_gpu(n_gpus=1, min_gpu_memory=6000, retry=False, sleep_time=30):
 
 
 # ---------------------------- Extend with My Methods - (Myra Zmarsly)----------------------------
-def load_data(train_file='', dev_file='', dev_label_file='', test_file=''):
+def load_data(train_file='', dev_file='', dev_label_file='', test_file='', test_label_file=''):
     # dev and train data
     # TODO check if files are available / downloaded
     data_train = pd.read_csv(train_file, sep='\t') if train_file != '' else None
     features_dev = pd.read_csv(dev_file, sep='\t') if dev_file != '' else None
     labels_dev = pd.read_csv(dev_label_file, sep='\t', header=None) if dev_label_file != '' else None
     data_test = pd.read_csv(test_file, sep='\t') if test_file != '' else None
-    
+    try:
+        lables_test = pd.read_csv(test_label_file, sep='\t') if test_label_file != '' else None
+    except:
+        print('Using test data without labels.')
+        lables_test = None
+        
     if features_dev is not None:
         # specify label columns
         label_columns = ['empathy', 'distress', 'emotion', 'personality_conscientiousness', 'personality_openess', 'personality_extraversion', 'personality_agreeableness', 'personality_stability', 'iri_perspective_taking',  'iri_personal_distress', 'iri_fantasy','iri_empathatic_concern']
         # since dev labels initially have no column names, add them manually
         labels_dev.columns = label_columns
         data_dev = features_dev.join(labels_dev)
+        if not lables_test is None:
+            data_test = data_test.join(lables_test)
     return data_train, data_dev, data_test
 
 

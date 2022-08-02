@@ -181,7 +181,7 @@ def main():
     # ------------------------------
     # Data Loading
     # edited by Myra Z.
-    data_train_pd, data_dev_pd, data_test_pd = load_data(train_file=data_args.train_file, dev_file=data_args.validation_file, dev_label_file=data_args.validation_labels_file, test_file=data_args.test_file)
+    data_train_pd, data_dev_pd, data_test_pd = load_data(train_file=data_args.train_file, dev_file=data_args.validation_file, dev_label_file=data_args.validation_labels_file, test_file=data_args.test_file, test_label_file=data_args.test_label_file)
     data_train_pd = clean_raw_data(data_train_pd)
     data_dev_pd = clean_raw_data(data_dev_pd)
     data_test_pd = clean_raw_data(data_test_pd)
@@ -591,8 +591,8 @@ def main():
             print(true_score.shape)
             try:
                 essay_ids = np.reshape(eval_dataset['message_id'],(-1,))
-                print(essay_ids.shape)
-
+                print('Essay ids shape:', essay_ids.shape)
+                print('Essay ids:', essay_ids)
             except:
                 pass
             log_plot_predictions(true_score, predictions, tensorboard_writer, use_wandb)

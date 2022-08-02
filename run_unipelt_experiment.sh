@@ -140,6 +140,9 @@ do
             add_lora=False
             tune_bias=False
         fi
+        
+        # add task name as subfolder
+        output_dir="${output_dir}/${task_name}"
 
         # call the python file with stated parameters
         python run_emp.py \
