@@ -87,6 +87,12 @@ else:
 
 check_min_version("4.5.0")
 
+RTPT_AVAILABLE = importlib.util.find_spec("wandb") is not None
+if RTPT_AVAILABLE:
+    from rtpt import RTPT
+else:
+    print(package_name +" is not installed. Not used here.")
+
 
 logger = logging.getLogger(__name__)
 
@@ -177,6 +183,15 @@ def main():
             "tensorboard_output_dir":data_args.tensorboard_output_dir,
             "max_epochs":training_args.num_train_epochs
             })
+
+    # Create RTPT object
+    if RTPT_AVAILABLE:
+        exp_name = 'DistressedBERT' if data_args.task_name == 'distress' else 'EmpathicBERT'
+        rtpt = RTPT(name_initials='MZ', experiment_name=exp_name, max_iterations=training_args.num_train_epochs)
+        # Start the RTPT tracking
+        rtpt.start()  
+    else:
+        rtpt = None
 
     # ------------------------------
     # Data Loading
