@@ -604,6 +604,7 @@ def main():
                 pass
             true_score = np.reshape(eval_dataset['label'],(-1,))
             print(true_score.shape)
+            print(eval_dataset)
             try:
                 essay_ids = np.reshape(eval_dataset['message_id'],(-1,))
                 print('Essay ids shape:', essay_ids.shape)
