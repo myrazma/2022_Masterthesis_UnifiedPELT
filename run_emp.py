@@ -839,13 +839,13 @@ def log_plot_gates_per_layer(model, tensorboard_writer, use_wandb, output_dir=''
             axs.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
             fig.suptitle('Mean Gating Values for all Encoder Layers')
+            fig.tight_layout()
             title = f'{key}/gating_layers'
             plt.xlabel('Mean gating value')
-            fig = plt.figure(tight_layout=True)
             if tensorboard_writer is not None:
                 tensorboard_writer.add_figure(title, plt.gcf())
             if use_wandb:
-                wandb.log({title: wandb.Image(fig)})
+                wandb.log({title: wandb.Image(plt)})
             if os.path.exists(output_dir) and output_dir != '':
                 plt.savefig(output_dir + '/' + title.replace('/', '_') + '.pdf', bbox_inches='tight')
             plt.close()
