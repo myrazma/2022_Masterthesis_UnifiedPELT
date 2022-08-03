@@ -141,12 +141,11 @@ def load_data(train_file='', dev_file='', dev_label_file='', test_file='', test_
     return data_train, data_dev, data_test
 
 
-def clean_raw_data(data_df):
+def clean_raw_data(data_df, keep_id=False):
     """Preprocess raw data and dev data including the following steps:
     - remove empathy_bin and distress_bin as they are not appearing in the 
     - remove iri labels
     - remove personality labels
-
     Args:
         data_df (_type_): _description_
         features_dev (_type_): _description_
@@ -163,7 +162,7 @@ def clean_raw_data(data_df):
     # remove iri and personal things a labels here
     necessary_cols = [col for col in data_df.columns if not (col.__contains__('personality') or col.__contains__('iri'))]
     # additionally remove ids for now
-    necessary_cols = [col for col in necessary_cols if not col.__contains__('id')]
+    if not keep_id: necessary_cols = [col for col in necessary_cols if not col.__contains__('id')]
     data_df = data_df[necessary_cols]
     return data_df
 

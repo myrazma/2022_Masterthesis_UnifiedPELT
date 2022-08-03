@@ -197,9 +197,9 @@ def main():
     # Data Loading
     # edited by Myra Z.
     data_train_pd, data_dev_pd, data_test_pd = load_data(train_file=data_args.train_file, dev_file=data_args.validation_file, dev_label_file=data_args.validation_labels_file, test_file=data_args.test_file, test_label_file=data_args.test_label_file)
-    data_train_pd = clean_raw_data(data_train_pd)
-    data_dev_pd = clean_raw_data(data_dev_pd)
-    data_test_pd = clean_raw_data(data_test_pd)
+    data_train_pd = clean_raw_data(data_train_pd, keep_id=True)
+    data_dev_pd = clean_raw_data(data_dev_pd, keep_id=True)
+    data_test_pd = clean_raw_data(data_test_pd, keep_id=True)
 
     # Padding strategy
     if data_args.pad_to_max_length:
