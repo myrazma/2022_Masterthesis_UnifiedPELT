@@ -13,19 +13,19 @@ wandb_project="Results"
 # choose a method here and use the settings as stated below
 #pelt_method="full"
 #pelt_method="unipelt"
-#pelt_method="unipelt_apl"
+pelt_method="unipelt_apl"
 #pelt_method="unipelt_ap"
 #pelt_method="adapter"
 #pelt_method="lora"
 #pelt_method="prefix"
-pelt_method="bitfit"
+#pelt_method="bitfit"
 
 
 # for stacking and adding of another adapter
 stacking_adapter="/trained_adapters/bert-base-uncased-pf-emotion" # "AdapterHub/bert-base-uncased-pf-emotion"
 use_stacking_adapter=True
 train_all_gates_adapters=True
-
+do_predict=False
 task_name=distress
 
 # Full fine tuning
@@ -134,7 +134,7 @@ python run_emp.py \
     --output_dir ${output_dir}  \
     --overwrite_output_dir \
     --model_name_or_path bert-base-uncased \
-    --do_predict True \
+    --do_predict ${do_predict} \
     --do_eval True \
     --do_train True \
     --num_train_epochs 15 \
