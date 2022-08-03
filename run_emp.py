@@ -220,6 +220,7 @@ def main():
     dataset_emp_dev, dataset_dis_dev = preprocessing.get_preprocessed_dataset(data_dev_pd, tokenizer, training_args.seed, return_huggingface_ds=True, padding=padding, additional_cols=['message_id'])
     dataset_emp_test, dataset_dis_test = preprocessing.get_preprocessed_dataset(data_test_pd, tokenizer, training_args.seed, return_huggingface_ds=True, padding=padding, additional_cols=['message_id'])
     
+    print('right after loading:', dataset_emp_train)
     # --- choose dataset and data loader based on empathy ---
     # per default use empathy label
     train_dataset = dataset_emp_train
