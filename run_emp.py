@@ -607,7 +607,7 @@ def main():
 
                 layered_ids = []
                 for i in range(layer_count):
-                    layered_ids += essay_ids
+                    layered_ids += list(essay_ids)
 
                 eval_gates_df = eval_gates_df.sort_index()
                 eval_gates_df = eval_gates_df.sort_values('encoder_layer')
