@@ -216,6 +216,10 @@ def get_preprocessed_dataset(data_pd, tokenizer, seed, return_huggingface_ds=Fal
     # --- Create hugginface datasets ---
     data = pd_to_dataset(data_pd)
 
+    print('DATA COLUMNS', data_pd.columns)
+    print('Additional columns', additional_cols)
+    
+
     # -------------------
     #   preprocess data
     # -------------------
