@@ -233,6 +233,7 @@ def main():
         display_text = "Using distress data"
     print('\n------------ ' + display_text + ' ------------\n')
 
+    print(dataset_emp_train)
     # Task selection was here before, but since we are only using one task (regression),
     # these settings can stay the same for us
     is_regression = True  
@@ -821,29 +822,51 @@ def log_plot_gates_per_layer(model, tensorboard_writer, use_wandb, output_dir=''
                 this_colors = [COLORS[i] if i < len(COLORS) else '#000000' for i in range(len(gating_cols))]
 
             fig, axs = plt.subplots()
-            fig.set_figheight(len(grouped_mean))
+            fig.set_figwidth(len(grouped_mean))
             for idx, col in enumerate(gating_cols):
                 y_pos = x + idx * bar_width
                 color_i = this_colors[idx]
                 label_i = col[5:].replace('-', ' ').replace('_', ' ')
-                axs.barh(y=y_pos, xerr=grouped_std[col], width=grouped_mean[col], height=bar_width, label=label_i, color=color_i)#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
+                axs.bar(x=y_pos, yerr=grouped_std[col], height=grouped_mean[col], width=bar_width, label=label_i, color=color_i)#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
             
-            axs.set_ylabel('Encoder Layer')
-            axs.set_yticklabels(grouped_mean.index.to_numpy())
-            axs.set_yticks(x + ((len(gating_cols)-1) * bar_width)/2)
+            axs.set_xlabel('Encoder Layer')
+            axs.set_xticklabels(grouped_mean.index.to_numpy())
+            axs.set_xticks(x + ((len(gating_cols)-1) * bar_width)/2)
             axs.set_title(f'{key} data set')
-            axs.set_ylim(x[0]-bar_width/2, x[-1] + ((len(gating_cols)-1) * bar_width) + bar_width/2)
-            axs.legend()#loc='center left', bbox_to_anchor=(1, 0.5))
+            axs.set_xlim(x[0]-bar_width/2, x[-1] + ((len(gating_cols)-1) * bar_width) + bar_width/2)
+            axs.set_ylim(0,1)
+            axs.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
+            fig, axs = plt.subplots()
+            """
+            print(fig.get_figheight())
+            fig.set_figwidth(len(grouped_mean)*3)
+            for idx, col in enumerate(gating_cols):
+                y_pos = x + idx * bar_width
+                color_i = this_colors[idx]
+
+                axs.bar(x=y_pos, yerr=grouped_std[col], height=grouped_mean[col], width=bar_width, label=col, color=color_i)#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
+            #axs.barh(y=x - (bar_width/2), xerr=grouped_std['gate_b'], width=grouped_mean['gate_b'], height=bar_width, label='LoRA value', color='#e69f00')#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
+            #axs.barh(y=x + (bar_width/2), xerr=grouped_std['gate_c'], width=grouped_mean['gate_c'], height=bar_width, label='LoRA query', color='#f0e441')#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
+            #axs.barh(y=x + ((bar_width/2)+bar_width), xerr=grouped_std['gate_d'], width=grouped_mean['gate_d'], height=bar_width, label='Adapters', color='#57b4e8')#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
+            axs.set_xlabel('Encoder Layer')
+            axs.set_xticklabels(grouped_mean.index.to_numpy())
+            axs.set_xticks(x + ((len(gating_cols)-1) * bar_width)/2)
+            axs.set_title('data set')
+            axs.set_xlim(x[0]-bar_width/2, x[-1] + ((len(gating_cols)-1) * bar_width) + bar_width/2)
+            axs.set_ylim(0,1)
+            axs.legend()#loc='center left', bbox_to_anchor=(1, 0.5))
+            """
 
             title = f'Mean Gating Values for all Encoder Layers'
             fig.suptitle(title)
             title = f'{key}/gating_layers'
             plt.xlabel('Mean gating value')
+            fig = plt.figure(tight_layout=True)
             if tensorboard_writer is not None:
                 tensorboard_writer.add_figure(title, plt.gcf())
             if use_wandb:
-                wandb.log({title: wandb.Image(plt)})
+                wandb.log({title: wandb.Image(fig)})
             if os.path.exists(output_dir) and output_dir != '':
                 plt.savefig(output_dir + '/' + title.replace('/', '_') + '.pdf', bbox_inches='tight')
             plt.close()

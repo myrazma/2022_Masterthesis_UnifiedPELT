@@ -24,6 +24,7 @@ task_name=distress
 
 output_dir=output/unipelt_output_test
 tensorboard_output_dir=runs/test
+do_predict=False
 
 # Full fine tuning
 if [ $pelt_method == "full" ]; then
@@ -113,7 +114,7 @@ python run_emp.py \
     --output_dir ${output_dir}  \
     --overwrite_output_dir \
     --model_name_or_path bert-base-uncased \
-    --do_predict True \
+    --do_predict ${do_predict} \
     --do_eval True \
     --do_train True \
     --add_central_gate False \
