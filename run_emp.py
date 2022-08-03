@@ -837,29 +837,7 @@ def log_plot_gates_per_layer(model, tensorboard_writer, use_wandb, output_dir=''
             axs.set_ylim(0,1)
             axs.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
-            fig, axs = plt.subplots()
-            """
-            print(fig.get_figheight())
-            fig.set_figwidth(len(grouped_mean)*3)
-            for idx, col in enumerate(gating_cols):
-                y_pos = x + idx * bar_width
-                color_i = this_colors[idx]
-
-                axs.bar(x=y_pos, yerr=grouped_std[col], height=grouped_mean[col], width=bar_width, label=col, color=color_i)#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
-            #axs.barh(y=x - (bar_width/2), xerr=grouped_std['gate_b'], width=grouped_mean['gate_b'], height=bar_width, label='LoRA value', color='#e69f00')#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
-            #axs.barh(y=x + (bar_width/2), xerr=grouped_std['gate_c'], width=grouped_mean['gate_c'], height=bar_width, label='LoRA query', color='#f0e441')#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
-            #axs.barh(y=x + ((bar_width/2)+bar_width), xerr=grouped_std['gate_d'], width=grouped_mean['gate_d'], height=bar_width, label='Adapters', color='#57b4e8')#, 'gate_lora_value', 'gate_lora_query', 'gate_adapters']], label=['gate_prefix', 'gate_lora_value', 'gate_lora_query', 'gate_adapters'])
-            axs.set_xlabel('Encoder Layer')
-            axs.set_xticklabels(grouped_mean.index.to_numpy())
-            axs.set_xticks(x + ((len(gating_cols)-1) * bar_width)/2)
-            axs.set_title('data set')
-            axs.set_xlim(x[0]-bar_width/2, x[-1] + ((len(gating_cols)-1) * bar_width) + bar_width/2)
-            axs.set_ylim(0,1)
-            axs.legend()#loc='center left', bbox_to_anchor=(1, 0.5))
-            """
-
-            title = f'Mean Gating Values for all Encoder Layers'
-            fig.suptitle(title)
+            fig.suptitle('Mean Gating Values for all Encoder Layers')
             title = f'{key}/gating_layers'
             plt.xlabel('Mean gating value')
             fig = plt.figure(tight_layout=True)
