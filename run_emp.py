@@ -97,7 +97,7 @@ else:
 logger = logging.getLogger(__name__)
 
 #COLORS = ['#029e72', '#e69f00', '#f0e441', '#57b4e8']
-COLORS = ['#D81B60', '#1E88E5', '#FFC107','#004D40','#029e72', '#e69f00', '#f0e441', '#57b4e8', '#b4a7d6', '#b1bab2']
+COLORS = ['#D81B60', '#1E88E5', '#e69f00','#f0e441','#029e72', '#FFC107', '#004D40', '#57b4e8', '#b4a7d6', '#b1bab2']
 
 
 def main():
@@ -220,7 +220,6 @@ def main():
     dataset_emp_dev, dataset_dis_dev = preprocessing.get_preprocessed_dataset(data_dev_pd, tokenizer, training_args.seed, return_huggingface_ds=True, padding=padding, additional_cols=['message_id'])
     dataset_emp_test, dataset_dis_test = preprocessing.get_preprocessed_dataset(data_test_pd, tokenizer, training_args.seed, return_huggingface_ds=True, padding=padding, additional_cols=['message_id'])
     
-    print('right after loading:', dataset_emp_train)
     # --- choose dataset and data loader based on empathy ---
     # per default use empathy label
     train_dataset = dataset_emp_train
@@ -234,7 +233,6 @@ def main():
         display_text = "Using distress data"
     print('\n------------ ' + display_text + ' ------------\n')
 
-    print(dataset_emp_train)
     # Task selection was here before, but since we are only using one task (regression),
     # these settings can stay the same for us
     is_regression = True  
@@ -554,9 +552,6 @@ def main():
         metrics["train_samples"] = min(max_train_samples, len(train_dataset))
 
         trainer.save_model()  # Saves the tokenizer too for easy upload
-        #print('\n -------------------------- trainer state', trainer.state.log_history)
-        print(metrics)
-        # print(model)
         trainer.log_metrics("train", metrics)
         trainer.save_metrics("train", metrics)
         trainer.save_state()
@@ -598,20 +593,29 @@ def main():
             output, eval_gates_df = trainer.predict(test_dataset=eval_dataset, return_gates=True)
             predictions = output.predictions
             predictions = np.squeeze(predictions) if is_regression else np.argmax(predictions, axis=1)
-            print('type eval_gates_df', type(eval_gates_df))
-            print('eval_gates_df', eval_gates_df)
+            
             try:
                 print(len(eval_gates_df))
             except:
                 pass
             true_score = np.reshape(eval_dataset['label'],(-1,))
-            print(true_score.shape)
-            print(eval_dataset)
+
             try:
                 essay_ids = np.reshape(eval_dataset['message_id'],(-1,))
-                print('Essay ids shape:', essay_ids.shape)
-                print('Essay ids:', essay_ids)
-            except:
+                layer_count = len(set(eval_gates_df['encoder_layer'].to_numpy()))
+                assert len(eval_gates_df[eval_gates_df['encoder_layer'] == 0]) == len(essay_ids)
+
+                layered_ids = []
+                for i in range(layer_count):
+                    layered_ids += essay_ids
+
+                eval_gates_df = eval_gates_df.sort_index()
+                eval_gates_df = eval_gates_df.sort_values('encoder_layer')
+                eval_gates_df['message_ids'] = layered_ids
+
+                eval_gates_df.to_csv(training_args.output_dir + '/eval_gates_w_ids.csv')
+            except AssertionError as a_e:
+                print('Could not map model with ids, do not store the gates with ids')
                 pass
             log_plot_predictions(true_score, predictions, tensorboard_writer, use_wandb)
 

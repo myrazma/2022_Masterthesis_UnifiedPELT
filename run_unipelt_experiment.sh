@@ -11,6 +11,7 @@ wandb_project="Results"
 # max_seq_length = 256 instead of 128
 
 # choose a method here and use the settings as stated below
+do_predict=False
 task_names=( distress empathy )
 methods=( full unipelt unipelt_apl unipelt_ap unipelt_al adapter lora prefix bitfit )
 range_runs=$((${#methods[@]}*${#task_names[@]}))
@@ -140,7 +141,7 @@ do
             add_lora=False
             tune_bias=False
         fi
-        
+
         # add task name as subfolder
         output_dir="${output_dir}/${task_name}"
 
@@ -151,7 +152,7 @@ do
             --output_dir ${output_dir} \
             --overwrite_output_dir \
             --model_name_or_path bert-base-uncased \
-            --do_predict True \
+            --do_predict ${do_predict} \
             --do_eval True \
             --do_train True \
             --num_train_epochs 15 \
@@ -163,7 +164,7 @@ do
             --save_strategy no \
             --wandb_entity ${wandb_entity} \
             --wandb_project ${wandb_project} \
-            --use_tensorboard False\
+            --use_tensorboard False \
             --tensorboard_output_dir ${tensorboard_output_dir} \
             --add_enc_prefix ${add_enc_prefix} \
             --train_adapter ${train_adapter} \
