@@ -12,8 +12,10 @@ wandb_project="Results"
 
 # choose a method here and use the settings as stated below
 do_predict=False
-task_names=( distress empathy )
-methods=( full unipelt unipelt_apl unipelt_ap unipelt_al adapter lora prefix bitfit )
+#task_names=( distress empathy )
+task_names=( empathy )
+#methods=( full unipelt unipelt_apl unipelt_ap unipelt_al adapter lora prefix bitfit )
+methods=( unipelt unipelt_apl unipelt_ap unipelt_al adapter lora prefix bitfit )
 range_runs=$((${#methods[@]}*${#task_names[@]}))
 i=0
 
@@ -24,15 +26,6 @@ do
         i=$(($i+1))
         echo "--------------- Run $i of $range_runs ---------------"
         echo "----------- $task_name using $pelt_method -----------"
-        
-        #pelt_method="full"
-        #pelt_method="unipelt"
-        #pelt_method="unipelt_apl"
-        #pelt_method="unipelt_ap"
-        #pelt_method="adapter"
-        #pelt_method="lora"
-        #pelt_method="prefix"
-        #pelt_method="bitfit"
 
         # Full fine tuning
         if [ $pelt_method == "full" ]; then
