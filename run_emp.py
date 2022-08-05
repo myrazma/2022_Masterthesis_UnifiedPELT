@@ -404,7 +404,7 @@ def main():
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     logger.info(f"trainable_params: {trainable_params}, total_params: {total_params}, percentage:  {(trainable_params/total_params)*100}")
 
-    log_wandb({'trainable_params':trainable_params, 'trainable_params_percentage':trainable_params/total_params*100}, use_wandb)
+    log_wandb({'trainable_params':trainable_params, 'total_params': total_params, 'trainable_params_percentage':trainable_params/total_params*100}, use_wandb)
     if True:
             names = [n for n, p in model.named_parameters()]
             paramsis = [param for param in model.parameters()]
