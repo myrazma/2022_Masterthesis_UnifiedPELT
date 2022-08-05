@@ -1820,7 +1820,7 @@ class BertForSequenceClassification(ModelWithHeadsAdaptersMixin, BertPreTrainedM
         # Added by Myra Z. TODO: Try the other ways
         if not multiinput is None: # bert output of dim 1 (output dim) and multiinput
             concat_output = torch.cat((logits, multiinput), 1)
-            logits = self.classifier(concat_output)
+            logits = self.multiinput_classifier(concat_output)
 
         loss = None
         if labels is not None:
