@@ -1743,25 +1743,15 @@ class BertForSequenceClassification(ModelWithHeadsAdaptersMixin, BertPreTrainedM
 
         self.bert = BertModel(config)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
-        #classfier_hidden_size = config.hidden_size
-        #try:  # if feature_dim in config: add to hidden dim
-        #    classfier_hidden_size = config.hidden_size + config.feature_dim
-        #    print(f'new hidden size: {classfier_hidden_size} ({config.feature_dim} additional features)')
-        #except:
-        #    pass
-        #self.classifier = nn.Linear(classfier_hidden_size, config.num_labels)
 
         classfier_hidden_size = config.hidden_size
-        #try:  # if feature_dim in config: add to hidden dim
-        #    classfier_hidden_size = config.hidden_size + config.feature_dim
-        #    print(f'new hidden size: {classfier_hidden_size} ({config.feature_dim} additional features)')
-        #except:
-        #    pass
+        try:  # if feature_dim in config: add to hidden dim
+            classfier_hidden_size = config.hidden_size + config.feature_dim
+            print(f'new hidden size: {classfier_hidden_size} ({config.feature_dim} additional features)')
+        except:
+            pass
         self.classifier = nn.Linear(classfier_hidden_size, config.num_labels)
-        # TODO: just use this, when multiinput is available 
-        if config.feature_dim is None: config.feature_dim = 0
-        self.multiinput_classifier = nn.Linear(config.num_labels + config.feature_dim, config.num_labels)
-
+        
         self.init_weights()
 
     @add_start_docstrings_to_model_forward(BERT_INPUTS_DOCSTRING.format("batch_size, sequence_length"))
@@ -1811,16 +1801,16 @@ class BertForSequenceClassification(ModelWithHeadsAdaptersMixin, BertPreTrainedM
 
         pooled_output = self.dropout(pooled_output)
                 
-        # Added by Myra Z. for multi input        
+        # Added by Myra Z. for multiinput        
         concat_output = pooled_output
-        #concat_output = torch.cat((concat_output, pca), 1) if pca is not None else concat_output  # add pca features
+        concat_output = torch.cat((concat_output, multiinput), 1) if multiinput is not None else concat_output  # add pca features
    
         logits = self.classifier(concat_output)
 
         # Added by Myra Z. TODO: Try the other ways
-        if not multiinput is None: # bert output of dim 1 (output dim) and multiinput
-            concat_output = torch.cat((logits, multiinput), 1)
-            logits = self.multiinput_classifier(concat_output)
+        #if not multiinput is None: # bert output of dim 1 (output dim) and multiinput
+        #    concat_output = torch.cat((logits, multiinput), 1)
+        #    logits = self.multiinput_classifier(concat_output)
 
         loss = None
         if labels is not None:
