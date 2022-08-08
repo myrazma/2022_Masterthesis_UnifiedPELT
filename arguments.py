@@ -249,9 +249,9 @@ class ModelArguments:
         default=False,
         metadata={"help": "add a shared gate"},
     )
-    stacking_adapter: Optional[str] = field(
-        default=None,
-        metadata={"help": "The source of an adapter to stack right before the task adapter"},
+    trained_adapter_dir: Optional[str] = field(
+        default="data/trained_adapters",
+        metadata={"help": "The directory for trained adapters"},
     )
     stacking_adapter: Optional[str] = field(
         default=None,
@@ -264,4 +264,8 @@ class ModelArguments:
     train_all_gates_adapters: bool = field(
         default=True,
         metadata={"help": "Train the gate for all adapters, even if they are not set to active"},
+    )
+    use_multitask_adapter: bool = field(
+        default=False,
+        metadata={"help": "Wether or not to use the adapter from the other task: When task_name==distress, use empathy multiadapter as input and vice versa."},
     )
