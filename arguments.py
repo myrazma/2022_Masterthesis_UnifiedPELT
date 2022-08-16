@@ -265,7 +265,7 @@ class ModelArguments:
         default=True,
         metadata={"help": "Train the gate for all adapters, even if they are not set to active"},
     )
-    use_multitask_adapter: bool = field(
+    use_sidetask_adapter: bool = field(
         default=False,
         metadata={"help": "Wether or not to use the adapter from the other task: When task_name==distress, use empathy multiadapter as input and vice versa."},
     )
