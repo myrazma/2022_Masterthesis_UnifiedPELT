@@ -1,18 +1,18 @@
 # Usage of UniPELT repo (CLONE) for my Master's thesis
 
-This is a clone of a the [UniPELT repository](https://github.com/morningmoni/UniPELT), see [Reference](#Reference) for the citation of the authors and original paper of UniPELT. Also refer to other repos used in the UniPELT repo: [Prefix-tuning](https://github.com/XiangLi1999/PrefixTuning), [LoRA](https://github.com/microsoft/LoRA)
+This is a clone of of the [UniPELT repository](https://github.com/morningmoni/UniPELT), see [Reference](#Reference) for the citation of the authors and original paper of UniPELT. Also refer to other repositories used in the UniPELT repo: [Prefix-tuning](https://github.com/XiangLi1999/PrefixTuning), [LoRA](https://github.com/microsoft/LoRA)
 
-In this directory I use the UniPELT framework and adapt it to the [task used in my master's thesis](#The-task-Empathy-and-distress-prediction). The UniPELT framework is a unified version with Parameter-Efficient Language Model Tuning (PELT) techniques including LoRA (Hu et al., 2021), BitFit (bias-term fine tuning) (Zaken et al., 2021), prefix tuning (Li and Liang 2021) and adapters (Houlsby et a., 2019). These methods are combined using a gating function to activate (up-weight) the best performing method for the task setting and data sample.
+In this directory, we use the UniPELT framework and adapt it to the [task used in my Master's thesis](#The-task-Empathy-and-distress-prediction). The UniPELT framework is a unified version with Parameter-Efficient Language Model Tuning (PELT) techniques, including LoRA (Hu et al., 2021), BitFit (bias-term fine tuning) (Zaken et al., 2021), prefix tuning (Li & Liang, 2021) and adapters (Houlsby et a., 2019). These methods are combined using a gating function to activate (up-weight) the best performing method for the task setting and data sample.
 
-For the experiments, anaylsis and further research please visit the repository of my [master's thesis](https://github.com/myrazma/2022_Masterthesis_Code)
+For the experiments, analysis and further research, please visit the repository of my [Master's thesis](https://github.com/myrazma/2022_Masterthesis_Code)
 
 ## The task: Empathy and distress prediction
-The task is a supervised regression task to predict empathy and distress ratings from texts (Buechel et al, 2018). Particpants were asked to read 5 news articles, after each article they reported their empathy and distress level on a 14 item questionnaire and wrote a reaction-essay. This essay is the base / input for our NLP model. The label / target are the average questionnaire.
+The task is a supervised regression task to predict empathy and distress ratings from texts (Buechel et al., 2018). Participants were asked to read 5 news articles. After each article, they reported their empathy and distress level on a 14-item questionnaire and wrote a reaction essay. This essay is the input for our NLP model. The labels are the average questionnaire.
 
-## My additions / changes to this repository
+## Our additions to this repository
 
 ### Changes in UniPELT:
-[modeling_bert.py](transformers/models/bert/modeling_bert.py): We added storing and flushing the gate variables for a more structured access to the parameters. 
+[modeling_bert.py](transformers/models/bert/modeling_bert.py): We added storing and flushing the gate variables for more structured access to the parameters. 
 
 In addition, we updated the model to return the gates at inference. One can access the gates via trainer.predict:
 ```
@@ -22,15 +22,15 @@ output, gates = trainer.predict(test_dataset=eval_dataset, return_gates=True)
 ### Changes or addition for the empathy and distress prediction directly:
 * [run_emp.py](run_emp.py): copy from run_glue.py and adapted to the empathy / distress prediction
 * [utils.py](utils.py): add some more functions to the already existing utils.py script
-* [preprocessig.py](preprocessig.py): add a preprocessing script for useful preprocessing methods for the empathy and distress dataset
+* [preprocessing.py](preprocessig.py): add a preprocessing script for useful preprocessing methods for the empathy and distress dataset
 * [run_unipelt_emp.sh](run_unipelt_emp.sh): add this file to run the run_emp.py script with all necessary arguments
 * [run_unipelt_emp_testing.sh](run_unipelt_emp_testing.sh): Add this file to run the run_emp.py script as a test run with less epochs and less training data
 * [runs/](runs/): The runs for the tensorboard
 
-For the other scripts please refere to the original authors.
+For the other scripts, please refer to the original authors.
 
 ## Run
-As a Dockerfile was not provided by the original authors, I created one with all necessary requirements.
+As a Dockerfile was not provided by the original authors, I created one with all the necessary requirements.
 To build the Dockerfile run
 ```
 docker build -t <docker-name> .
@@ -52,7 +52,7 @@ If you want to make any changes to the training, model and data setting, you can
 ### Run settings for the UniPelt configurations
 The different configurations for the models are set in [run_unipelt_emp.sh](run_unipelt_emp.sh) and can be changed by changing *pelt_method* to one of the pre-defiend cases (full, unipelt, prefix, lora, bitfit, adapter):
 
-#### Full parameter fine tuning (full):
+#### Full parameter fine-tuning (full):
 Using 100 % of the parameters (for bert-base).
 ```
     learning_rate=2e-5
