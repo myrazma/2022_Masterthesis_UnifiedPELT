@@ -2,21 +2,22 @@
 
 This is a clone of a the [UniPELT repository](https://github.com/morningmoni/UniPELT), see [Reference](#Reference) for the citation of the authors and original paper of UniPELT. Also refer to other repos used in the UniPELT repo: [Prefix-tuning](https://github.com/XiangLi1999/PrefixTuning), [LoRA](https://github.com/microsoft/LoRA)
 
-In this directory I use the UniPELT framework and adapt it to the [task of my master's thesis](#The-task-Empathy-and-distress-prediction). The UniPELT framework is a unified version with Parameter-Efficient Language Model Tuning (PELT) techniques including LoRA (Hu et al., 2021), BitFit (bias-term fine tuning) (Zaken et al., 2021), prefix tuning (Li and Liang 2021) and adapters (Houlsby et a., 2019). These methods are combined using a gating function tp activate (up-weight) the best performing method for the task setting and data sample.
+In this directory I use the UniPELT framework and adapt it to the [task used in my master's thesis](#The-task-Empathy-and-distress-prediction). The UniPELT framework is a unified version with Parameter-Efficient Language Model Tuning (PELT) techniques including LoRA (Hu et al., 2021), BitFit (bias-term fine tuning) (Zaken et al., 2021), prefix tuning (Li and Liang 2021) and adapters (Houlsby et a., 2019). These methods are combined using a gating function to activate (up-weight) the best performing method for the task setting and data sample.
+
+For the experiments, anaylsis and further research please visit the repository of my [master's thesis](https://github.com/myrazma/2022_Masterthesis_Code)
 
 ## The task: Empathy and distress prediction
-The task is a supervised regression task to predict empathy and distress ratings from texts (Buechel et al, 2018). 
-
-Particpants were asked to read 5 news articles, after each article they reported their empathy and distress level on a 14 item questionnaire and wrote a reaction-essay. This essay is the base / input for our NLP model. The label / target are the average questionnaire.
+The task is a supervised regression task to predict empathy and distress ratings from texts (Buechel et al, 2018). Particpants were asked to read 5 news articles, after each article they reported their empathy and distress level on a 14 item questionnaire and wrote a reaction-essay. This essay is the base / input for our NLP model. The label / target are the average questionnaire.
 
 ## My additions / changes to this repository
 
 ### Changes in UniPELT:
-* [modeling_bert.py](transformers/models/bert/modeling_bert.py): We added storing and flushing the gate variables for a more structured access to the parameters. 
+[modeling_bert.py](transformers/models/bert/modeling_bert.py): We added storing and flushing the gate variables for a more structured access to the parameters. 
 
 In addition, we updated the model to return the gates at inference. One can access the gates via trainer.predict:
-
+```
 output, gates = trainer.predict(test_dataset=eval_dataset, return_gates=True)
+```
 
 ### Changes or addition for the empathy and distress prediction directly:
 * [run_emp.py](run_emp.py): copy from run_glue.py and adapted to the empathy / distress prediction
