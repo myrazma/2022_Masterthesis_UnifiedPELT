@@ -1,6 +1,8 @@
 # Parmater setup from Mao2021 - Unipelt: A unified framework for parameter-efficient language model tuning
 # https://arxiv.org/abs/2110.07577
 
+# Run unipelt experiment for all methods
+
 # setup wandb
 wandb_entity="masterthesis-zmarsly"
 wandb_project="Results"
@@ -54,7 +56,7 @@ do
         # UniPELT APL
         if [ $pelt_method == "unipelt_apl" ]; then
             echo "Using Unipelt APL (adapter, prefix-tuning, lora; exclude: BitFit)"
-            learning_rate=5e-4
+            learning_rate=1e-4
             tensorboard_output_dir=runs/pelt_unified_apl_bert
             output_dir=output/pelt_unified_apl_bert
             add_enc_prefix=True

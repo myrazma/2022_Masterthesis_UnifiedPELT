@@ -7,7 +7,7 @@ In this directory, we use the UniPELT framework and adapt it to the [task used i
 For the experiments, analysis and further research, please visit the repository of my [Master's thesis](https://github.com/myrazma/2022_Masterthesis_Code)
 
 ## The task: Empathy and distress prediction
-The task is a supervised regression task to predict empathy and distress ratings from texts (Buechel et al., 2018). Participants were asked to read 5 news articles. After each article, they reported their empathy and distress level on a 14-item questionnaire and wrote a reaction essay. This essay is the input for our NLP model. The labels are the average questionnaire.
+The task is a supervised regression task to predict empathy and distress ratings from texts (Buechel et al., 2018). Participants were asked to read 5 news articles. After each article, they reported their empathy and distress level on a 14-item questionnaire and wrote a reaction essay. This essay is the input for our NLP model. The labels are the averaged items of the questionnaire.
 
 ## Our additions to this repository
 
@@ -23,11 +23,10 @@ output, gates = trainer.predict(test_dataset=eval_dataset, return_gates=True)
 * [run_emp.py](run_emp.py): copy from run_glue.py and adapted to the empathy / distress prediction
 * [utils.py](utils.py): add some more functions to the already existing utils.py script
 * [preprocessing.py](preprocessig.py): add a preprocessing script for useful preprocessing methods for the empathy and distress dataset
-* [run_unipelt_emp.sh](run_unipelt_emp.sh): add this file to run the run_emp.py script with all necessary arguments
-* [run_unipelt_emp_testing.sh](run_unipelt_emp_testing.sh): Add this file to run the run_emp.py script as a test run with less epochs and less training data
-* [runs/](runs/): The runs for the tensorboard
+* [run_unipelt_emp.sh](run_unipelt_emp.sh): We add this file to run the run_emp.py script with all necessary arguments
+* [run_unipelt_experiment.sh](run_unipelt_experiment.sh): Run all Pelt methods in one experiment
 
-For the other scripts, please refer to the original authors.
+For the other scripts, please refer to the original [authors of UniPELT](#reference).
 
 ## Run
 As a Dockerfile was not provided by the original authors, I created one with all the necessary requirements.
@@ -63,9 +62,9 @@ Using 100 % of the parameters (for bert-base).
     tune_bias=False
 ```
 
-#### UniPELT (Lora, Adapters, BitFit, Prefix)
+#### UniPELT (Lora, Adapters, Prefix)
 ```
-    learning_rate=5e-4
+    learning_rate=1e-4
     tensorboard_output_dir=runs/pelt_unified
     add_enc_prefix=True
     train_adapter=True
